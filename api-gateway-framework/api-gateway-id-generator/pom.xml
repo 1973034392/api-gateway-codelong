@@ -7,15 +7,10 @@
         <groupId>top.codelong</groupId>
         <artifactId>api-gateway</artifactId>
         <version>1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <modules>
-        <module>api-gateway-auth</module>
-        <module>api-gateway-id-generator</module>
-        <module>api-gateway-heartbeat</module>
-    </modules>
-
-    <artifactId>api-gateway-framework</artifactId>
+    <artifactId>api-gateway-id-generator</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
