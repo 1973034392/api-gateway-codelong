@@ -1,3 +1,33 @@
+server:
+  port: 18080
 spring:
   application:
     name: api-gateway-center
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/api-gateway?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      database: 0
+      host: 127.0.0.1
+      port: 6379
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+knife4j:
+  enable: false
+
+nginx:
+  address: http://127.0.0.1:80
+  config: /etc/nginx/nginx.conf
+unique-id:
+  nodeIdBits: 1
+  sequenceBits: 12
+  nodeIdKey: snowflake:node_id
+
