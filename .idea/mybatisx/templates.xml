@@ -89,6 +89,10 @@
                   <option name="tableName" value="gateway_server" />
                 </TableUIInfo>
                 <TableUIInfo>
+                  <option name="className" value="GatewayServerDetail" />
+                  <option name="tableName" value="gateway_server_detail" />
+                </TableUIInfo>
+                <TableUIInfo>
                   <option name="className" value="GatewayServerGroupRel" />
                   <option name="tableName" value="gateway_server_group_rel" />
                 </TableUIInfo>

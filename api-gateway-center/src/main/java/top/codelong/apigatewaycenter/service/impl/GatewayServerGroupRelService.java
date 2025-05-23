@@ -1,12 +1,12 @@
-package top.codelong.apigatewaycenter.service;
+package top.codelong.apigatewaycenter.service.impl;
 
-import top.codelong.apigatewaycenter.dao.entity.GatewayServerGroupRelDO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.codelong.apigatewaycenter.dao.entity.GatewayServerGroupRelDO;
 
 /**
-* @author codelong
+* @author Administrator
 * @description 针对表【gateway_server_group_rel(网关系统和实例分组关联表)】的数据库操作Service
-* @createDate 2025-05-21 18:07:52
+* @createDate 2025-05-23 16:05:44
 */
 public interface GatewayServerGroupRelService extends IService<GatewayServerGroupRelDO> {
 
