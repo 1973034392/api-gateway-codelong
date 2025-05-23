@@ -3,21 +3,28 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.codelong.apigatewaycenter.dao.mapper.GatewayGroupDetailMapper">
-
-    <resultMap id="BaseResultMap" type="top.codelong.apigatewaycenter.dao.entity.GatewayGroupDetailDO">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="groupId" column="group_id" jdbcType="BIGINT"/>
-            <result property="detailName" column="detail_name" jdbcType="VARCHAR"/>
-            <result property="detailAddress" column="detail_address" jdbcType="VARCHAR"/>
-            <result property="status" column="status" jdbcType="INTEGER"/>
-            <result property="detailWeight" column="detail_weight" jdbcType="INTEGER"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-    </resultMap>
-
-    <sql id="Base_Column_List">
-        id,group_id,detail_name,
-        detail_address,status,detail_weight,
-        create_time,update_time
-    </sql>
+    <select id="pageInfo" resultType="top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO">
+        select d.id,
+        g.group_name,
+        d.detail_name as name,
+        d.detail_address as address,
+        d.status,
+        d.detail_weight as weight
+        from gateway_group_detail d
+        inner join gateway_group g on d.group_id = g.id
+        <where>
+            <if test="reqVO.groupName != null and reqVO.groupName != ''">
+                and g.group_name like concat('%', #{reqVO.groupName}, '%')
+            </if>
+            <if test="reqVO.detailName != null and reqVO.detailName != ''">
+                and d.detail_name like concat('%', #{reqVO.detailName}, '%')
+            </if>
+            <if test="reqVO.status != null">
+                and d.status = #{reqVO.status}
+            </if>
+            <if test="reqVO.address != null and reqVO.address != ''">
+                and d.detail_address like concat('%', #{reqVO.address}, '%')
+            </if>
+        </where>
+    </select>
 </mapper>

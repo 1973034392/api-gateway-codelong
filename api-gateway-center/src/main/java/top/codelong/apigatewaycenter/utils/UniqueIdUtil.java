@@ -1,5 +1,6 @@
 package top.codelong.apigatewaycenter.utils;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycenter.config.UniqueIdConfig;
@@ -26,7 +27,7 @@ public class UniqueIdUtil {
      * 初始化节点ID（从Redis获取）
      */
     private long initNodeId() {
-        String key = uniqueIdConfig.getNodeIdKey() + getApplicationName();
+        String key = uniqueIdConfig.getNodeIdKey() + ':' + getApplicationName();
         // 使用Redis自增获取唯一节点ID
         Long nodeId = redisTemplate.opsForValue().increment(key);
 
