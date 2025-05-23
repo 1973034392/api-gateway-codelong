@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.codelong.apigatewaycenter.dao.mapper.GatewayMethodMapper">
+
+    <resultMap id="BaseResultMap" type="top.codelong.apigatewaycenter.dao.entity.GatewayMethodDO">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="methodName" column="method_name" jdbcType="VARCHAR"/>
+            <result property="parameterType" column="parameter_type" jdbcType="VARCHAR"/>
+            <result property="url" column="url" jdbcType="VARCHAR"/>
+            <result property="isAuth" column="is_auth" jdbcType="INTEGER"/>
+            <result property="isHttp" column="is_http" jdbcType="INTEGER"/>
+            <result property="httpType" column="http_type" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,method_name,parameter_type,
+        url,is_auth,is_http,
+        http_type,create_time,update_time
+    </sql>
+</mapper>
