@@ -2,14 +2,16 @@ package top.codelong.apigatewaycenter.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.time.LocalDateTime;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * 网关系统表
+ *
  * @TableName gateway_server
  */
-@TableName(value ="gateway_server")
+@TableName(value = "gateway_server")
 @Data
 public class GatewayServerDO {
     /**
@@ -37,6 +39,11 @@ public class GatewayServerDO {
      * 安全组秘钥
      */
     private String safeSecret;
+
+    /**
+     * NGINX地址
+     */
+    private String nginxAddr;
 
     /**
      * 创建时间

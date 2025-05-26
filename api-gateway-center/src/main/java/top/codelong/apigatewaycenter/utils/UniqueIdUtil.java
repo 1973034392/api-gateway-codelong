@@ -1,6 +1,5 @@
 package top.codelong.apigatewaycenter.utils;
 
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycenter.config.UniqueIdConfig;

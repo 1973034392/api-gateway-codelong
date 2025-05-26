@@ -11,7 +11,7 @@ import lombok.Data;
  */
 @TableName(value ="gateway_server_detail")
 @Data
-public class GatewayServerDetail {
+public class GatewayServerDetailDO {
     /**
      * 唯一id
      */

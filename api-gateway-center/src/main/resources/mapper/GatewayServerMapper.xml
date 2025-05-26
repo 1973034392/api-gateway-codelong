@@ -4,19 +4,24 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper">
 
-    <resultMap id="BaseResultMap" type="top.codelong.apigatewaycenter.dao.entity.GatewayServerDO">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="serverName" column="server_name" jdbcType="VARCHAR"/>
-            <result property="status" column="status" jdbcType="INTEGER"/>
-            <result property="safeKey" column="safe_key" jdbcType="VARCHAR"/>
-            <result property="safeSecret" column="safe_secret" jdbcType="VARCHAR"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-    </resultMap>
+    <select id="nameIsExist" resultType="java.lang.Boolean">
+        select exists(select * from gateway_server where server_name = #{name})
+    </select>
+    <select id="pageInfo" resultType="top.codelong.apigatewaycenter.dao.entity.GatewayServerDO">
+        select *
+        from gateway_server
+        <where>
+            <if test="name != null and name != ''">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="addr != null and addr != ''">
+                and nginx_addr like concat('%',#{addr},'%')
+            </if>
+        </where>
+    </select>
 
-    <sql id="Base_Column_List">
-        id,server_name,status,
-        safe_key,safe_secret,create_time,
-        update_time
-    </sql>
+
 </mapper>

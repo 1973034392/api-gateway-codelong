@@ -4,17 +4,10 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.codelong.apigatewaycenter.dao.mapper.GatewayServerDetailMapper">
 
-    <resultMap id="BaseResultMap" type="top.codelong.apigatewaycenter.dao.entity.GatewayServerDetail">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="serverId" column="server_id" jdbcType="BIGINT"/>
-            <result property="serverAddress" column="server_address" jdbcType="VARCHAR"/>
-            <result property="status" column="status" jdbcType="INTEGER"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-    </resultMap>
-
-    <sql id="Base_Column_List">
-        id,server_id,server_address,
-        status,create_time,update_time
-    </sql>
+    <update id="registerIfAbsent">
+        update gateway_server_detail
+        set status = 1
+        where server_address = #{serverAddress}
+          and status = 0
+    </update>
 </mapper>

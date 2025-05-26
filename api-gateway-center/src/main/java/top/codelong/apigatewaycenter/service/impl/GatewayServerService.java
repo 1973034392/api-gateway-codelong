@@ -1,13 +1,25 @@
 package top.codelong.apigatewaycenter.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerDO;
+import top.codelong.apigatewaycenter.dto.req.ServerPageReqVO;
+import top.codelong.apigatewaycenter.dto.req.ServerSaveReqVO;
 
 /**
-* @author Administrator
-* @description 针对表【gateway_server(网关系统表)】的数据库操作Service
-* @createDate 2025-05-23 16:05:44
-*/
+ * @author Administrator
+ * @description 针对表【gateway_server(网关系统表)】的数据库操作Service
+ * @createDate 2025-05-23 16:05:44
+ */
 public interface GatewayServerService extends IService<GatewayServerDO> {
 
+    Long create(ServerSaveReqVO reqVO);
+
+    boolean update(ServerSaveReqVO reqVO);
+
+    Boolean updateStatus(Long id);
+
+    ServerSaveReqVO get(Long id);
+
+    PageResult<GatewayServerDO> page(ServerPageReqVO reqVO);
 }
