@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dto.req.InterfaceMethodSaveReqVO;
-import top.codelong.apigatewaycenter.service.impl.GatewayInterfaceService;
+import top.codelong.apigatewaycenter.service.GatewayInterfaceService;
 
 @RestController
 @RequestMapping("/gateway-interface")

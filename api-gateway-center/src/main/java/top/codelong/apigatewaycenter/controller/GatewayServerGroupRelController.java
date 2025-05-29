@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dto.req.ServerGroupRelSaveReqVO;
-import top.codelong.apigatewaycenter.service.impl.GatewayServerGroupRelService;
+import top.codelong.apigatewaycenter.service.GatewayServerGroupRelService;
 
 @RestController
 @RequestMapping("/gateway-server-group-rel")

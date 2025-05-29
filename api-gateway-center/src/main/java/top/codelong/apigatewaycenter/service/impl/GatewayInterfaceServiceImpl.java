@@ -1,4 +1,4 @@
-package top.codelong.apigatewaycenter.service.impl.impl;
+package top.codelong.apigatewaycenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -14,7 +14,7 @@ import top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper;
 import top.codelong.apigatewaycenter.dto.domain.MethodSaveDomain;
 import top.codelong.apigatewaycenter.dto.req.InterfaceMethodSaveReqVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
-import top.codelong.apigatewaycenter.service.impl.GatewayInterfaceService;
+import top.codelong.apigatewaycenter.service.GatewayInterfaceService;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 
 /**

@@ -9,7 +9,7 @@ import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dao.entity.GatewayGroupDO;
 import top.codelong.apigatewaycenter.dto.req.GroupPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupSaveReqVO;
-import top.codelong.apigatewaycenter.service.impl.GatewayGroupService;
+import top.codelong.apigatewaycenter.service.GatewayGroupService;
 
 @RestController
 @RequestMapping("/gateway-group")

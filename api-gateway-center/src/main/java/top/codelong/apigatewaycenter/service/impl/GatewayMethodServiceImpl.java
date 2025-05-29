@@ -1,10 +1,10 @@
-package top.codelong.apigatewaycenter.service.impl.impl;
+package top.codelong.apigatewaycenter.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import top.codelong.apigatewaycenter.dao.entity.GatewayMethodDO;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayMethodMapper;
 import org.springframework.stereotype.Service;
-import top.codelong.apigatewaycenter.service.impl.GatewayMethodService;
+import top.codelong.apigatewaycenter.service.GatewayMethodService;
 
 /**
 * @author Administrator

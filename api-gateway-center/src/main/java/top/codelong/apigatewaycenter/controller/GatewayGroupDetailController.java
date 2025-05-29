@@ -8,7 +8,7 @@ import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO;
-import top.codelong.apigatewaycenter.service.impl.GatewayGroupDetailService;
+import top.codelong.apigatewaycenter.service.GatewayGroupDetailService;
 
 @RestController
 @RequestMapping("/gateway-group-detail")

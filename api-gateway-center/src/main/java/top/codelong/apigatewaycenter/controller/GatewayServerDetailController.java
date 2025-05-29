@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dto.req.ServerDetailRegisterReqVO;
-import top.codelong.apigatewaycenter.service.impl.GatewayServerDetailService;
+import top.codelong.apigatewaycenter.service.GatewayServerDetailService;
 
 @RestController
 @RequestMapping("/gateway-server-detail")

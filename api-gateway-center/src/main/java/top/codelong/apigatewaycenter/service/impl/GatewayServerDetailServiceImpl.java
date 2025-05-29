@@ -1,4 +1,4 @@
-package top.codelong.apigatewaycenter.service.impl.impl;
+package top.codelong.apigatewaycenter.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,7 @@ import top.codelong.apigatewaycenter.dao.entity.GatewayServerDetailDO;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayServerDetailMapper;
 import top.codelong.apigatewaycenter.dto.req.ServerDetailRegisterReqVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
-import top.codelong.apigatewaycenter.service.impl.GatewayServerDetailService;
+import top.codelong.apigatewaycenter.service.GatewayServerDetailService;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 
 /**

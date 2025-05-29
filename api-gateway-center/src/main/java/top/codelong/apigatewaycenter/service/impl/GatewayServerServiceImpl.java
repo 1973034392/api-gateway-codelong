@@ -1,4 +1,4 @@
-package top.codelong.apigatewaycenter.service.impl.impl;
+package top.codelong.apigatewaycenter.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
@@ -12,7 +12,7 @@ import top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper;
 import top.codelong.apigatewaycenter.dto.req.ServerPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.ServerSaveReqVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
-import top.codelong.apigatewaycenter.service.impl.GatewayServerService;
+import top.codelong.apigatewaycenter.service.GatewayServerService;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 
 import java.util.List;

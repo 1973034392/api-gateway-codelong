@@ -1,4 +1,4 @@
-package top.codelong.apigatewaycenter.service.impl.impl;
+package top.codelong.apigatewaycenter.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -10,7 +10,7 @@ import top.codelong.apigatewaycenter.dao.entity.GatewayGroupDO;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayGroupMapper;
 import top.codelong.apigatewaycenter.dto.req.GroupPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupSaveReqVO;
-import top.codelong.apigatewaycenter.service.impl.GatewayGroupService;
+import top.codelong.apigatewaycenter.service.GatewayGroupService;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 
 import java.util.List;

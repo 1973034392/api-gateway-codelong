@@ -1,9 +1,8 @@
-package top.codelong.apigatewaycenter.service.impl;
+package top.codelong.apigatewaycenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerDetailDO;
 import top.codelong.apigatewaycenter.dto.req.ServerDetailRegisterReqVO;
-import top.codelong.apigatewaycenter.dto.req.ServerSaveReqVO;
 
 /**
 * @author Administrator

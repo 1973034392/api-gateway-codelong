@@ -1,7 +1,6 @@
 package top.codelong.apigatewaycenter.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +9,7 @@ import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerDO;
 import top.codelong.apigatewaycenter.dto.req.ServerPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.ServerSaveReqVO;
-import top.codelong.apigatewaycenter.service.impl.GatewayServerService;
+import top.codelong.apigatewaycenter.service.GatewayServerService;
 
 @RestController
 @RequestMapping("/gateway-server")

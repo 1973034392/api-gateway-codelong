@@ -1,7 +1,6 @@
-package top.codelong.apigatewaycenter.service.impl;
+package top.codelong.apigatewaycenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dao.entity.GatewayInterfaceDO;
 import top.codelong.apigatewaycenter.dto.req.InterfaceMethodSaveReqVO;
 
