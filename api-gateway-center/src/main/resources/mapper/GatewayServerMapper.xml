@@ -22,6 +22,12 @@
             </if>
         </where>
     </select>
+    <select id="getIdBySafeKey" resultType="java.lang.Long">
+        select id
+        from gateway_server
+        where safe_key = #{safeKey}
+        limit 1
+    </select>
 
 
 </mapper>

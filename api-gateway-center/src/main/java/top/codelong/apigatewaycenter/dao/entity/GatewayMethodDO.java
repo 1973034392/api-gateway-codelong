@@ -19,6 +19,11 @@ public class GatewayMethodDO {
     private Long id;
 
     /**
+     * 接口id
+     */
+    private Long interfaceId;
+
+    /**
      * 方法名称
      */
     private String methodName;

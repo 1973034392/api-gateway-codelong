@@ -2,6 +2,7 @@ package top.codelong.apigatewaycenter.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerGroupRelDO;
+import top.codelong.apigatewaycenter.dto.req.ServerGroupRelSaveReqVO;
 
 /**
 * @author Administrator
@@ -10,4 +11,5 @@ import top.codelong.apigatewaycenter.dao.entity.GatewayServerGroupRelDO;
 */
 public interface GatewayServerGroupRelService extends IService<GatewayServerGroupRelDO> {
 
+    Long create(ServerGroupRelSaveReqVO reqVO);
 }
