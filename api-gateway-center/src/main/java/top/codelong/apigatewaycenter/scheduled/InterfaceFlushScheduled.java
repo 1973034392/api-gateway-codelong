@@ -39,6 +39,7 @@ public class InterfaceFlushScheduled {
         for (GatewayServerDO serverDO : serverList) {
             List<GatewayInterfaceDO> interfaceList = gatewayInterfaceMapper.selectList(new LambdaQueryWrapper<GatewayInterfaceDO>()
                     .eq(GatewayInterfaceDO::getServerId, serverDO.getId()));
+            boolean clear = true;
             for (GatewayInterfaceDO interfaceDO : interfaceList) {
                 List<GatewayMethodDO> methodList = gatewayMethodMapper.selectList(new LambdaQueryWrapper<GatewayMethodDO>()
                         .eq(GatewayMethodDO::getInterfaceId, interfaceDO.getId()));
@@ -50,13 +51,14 @@ public class InterfaceFlushScheduled {
                     params.put("isAuth", methodDO.getIsAuth());
                     params.put("isHttp", methodDO.getIsHttp());
                     params.put("httpType", methodDO.getHttpType());
-
-                    String deletePrefix = "URL:" + serverDO.getServerName() + ":" + methodDO.getUrl().split("&")[0];
-                    Set<String> keys = redisTemplate.keys(deletePrefix + "*");
-                    if (!keys.isEmpty()) {
-                        redisTemplate.delete(keys);
+                    if (clear) {
+                        String deletePrefix = "URL:" + serverDO.getServerName() + ":" + methodDO.getUrl().split("&")[0];
+                        Set<String> keys = redisTemplate.keys(deletePrefix + "*");
+                        if (!keys.isEmpty()) {
+                            redisTemplate.delete(keys);
+                        }
+                        clear = false;
                     }
-
                     redisTemplate.opsForHash().putAll("URL:" + serverDO.getServerName() + ":" + methodDO.getUrl(), params);
                     redisTemplate.expire("URL:" + serverDO.getServerName() + ":" + methodDO.getUrl(), 35, TimeUnit.MINUTES);
                 }
@@ -69,6 +71,6 @@ public class InterfaceFlushScheduled {
      */
     @Scheduled(cron = "0 0/10 * * * ?")
     public void flushServer() {
-
+        //TODO 定时删除失效的注册中心信息
     }
 }

@@ -13,7 +13,6 @@
         <module>server-send-sdk</module>
         <module>api-gateway-center</module>
         <module>api-gateway-core</module>
-        <module>api-gateway-framework</module>
         <module>test-provider</module>
     </modules>
 

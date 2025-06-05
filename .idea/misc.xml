@@ -13,6 +13,7 @@
       <set>
         <option value="$PROJECT_DIR$/api-gateway-dependencies/pom.xml" />
         <option value="$PROJECT_DIR$/api-gateway-framework/api-gateway-id-generator/pom.xml" />
+        <option value="$PROJECT_DIR$/api-gateway-framework/pom.xml" />
         <option value="$PROJECT_DIR$/api/pom.xml" />
       </set>
     </option>

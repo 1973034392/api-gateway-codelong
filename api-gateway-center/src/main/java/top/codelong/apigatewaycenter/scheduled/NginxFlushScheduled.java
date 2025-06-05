@@ -6,4 +6,5 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class NginxFlushScheduled {
+    //TODO NGINX 配置刷新
 }

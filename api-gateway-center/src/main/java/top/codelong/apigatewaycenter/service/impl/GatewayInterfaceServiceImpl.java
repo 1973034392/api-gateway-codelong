@@ -125,7 +125,7 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
             String key = "Server" + ":" + serverName + ":" + reqVO.getServerUrl();
             redisTemplate.opsForValue().set(key, method.getUrl());
         }
-        redisPubUtil.publish("ServerFlush", serverName);
+        redisPubUtil.publish("ServerFlush", serverName); //TODO 刷新本地缓存
     }
 }
 

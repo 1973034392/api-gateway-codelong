@@ -6,4 +6,5 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class NginxConfUtil {
+    //TODO 刷新NGINX配置
 }

@@ -65,4 +65,6 @@ public class GatewayGroupDetailController {
     public Result<Boolean> keepAlive(@RequestBody HeartBeatReqVO reqVO) {
         return Result.success(gatewayGroupDetailService.keepAlive(reqVO));
     }
+
+    //TODO 服务下线
 }

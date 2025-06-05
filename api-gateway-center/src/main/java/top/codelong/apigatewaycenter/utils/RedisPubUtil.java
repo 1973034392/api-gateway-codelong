@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RedisPubUtil {
     private final RedisTemplate<String, String> redisTemplate;
-
+    //TODO 消息统一管理
     public void publish(String channel, String message) {
         redisTemplate.convertAndSend(channel, message);
     }
