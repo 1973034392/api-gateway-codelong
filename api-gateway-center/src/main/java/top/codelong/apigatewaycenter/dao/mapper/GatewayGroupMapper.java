@@ -23,6 +23,8 @@ public interface GatewayGroupMapper extends BaseMapper<GatewayGroupDO> {
     Long getIdByKey(String key);
 
     List<GroupSaveReqVO> pageInfo(Page<GroupSaveReqVO> page, GroupPageReqVO reqVO);
+
+    String getServerNameByGroupKey(String groupKey);
 }
 
 

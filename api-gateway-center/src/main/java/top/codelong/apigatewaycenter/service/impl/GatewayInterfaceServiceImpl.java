@@ -3,19 +3,26 @@ package top.codelong.apigatewaycenter.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.codelong.apigatewaycenter.dao.entity.GatewayInterfaceDO;
 import top.codelong.apigatewaycenter.dao.entity.GatewayMethodDO;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerDO;
+import top.codelong.apigatewaycenter.dao.entity.GatewayServerDetailDO;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayInterfaceMapper;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayMethodMapper;
+import top.codelong.apigatewaycenter.dao.mapper.GatewayServerDetailMapper;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper;
 import top.codelong.apigatewaycenter.dto.domain.MethodSaveDomain;
 import top.codelong.apigatewaycenter.dto.req.InterfaceMethodSaveReqVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
+import top.codelong.apigatewaycenter.scheduled.InterfaceFlushScheduled;
 import top.codelong.apigatewaycenter.service.GatewayInterfaceService;
+import top.codelong.apigatewaycenter.utils.RedisPubUtil;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
+
+import java.util.List;
 
 /**
  * @author Administrator
@@ -28,7 +35,11 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
     private final GatewayServerMapper gatewayServerMapper;
     private final GatewayInterfaceMapper gatewayInterfaceMapper;
     private final GatewayMethodMapper gatewayMethodMapper;
+    private final GatewayServerDetailMapper gatewayServerDetailMapper;
     private final UniqueIdUtil uniqueIdUtil;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final InterfaceFlushScheduled interfaceFlushScheduled;
+    private final RedisPubUtil redisPubUtil;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -46,14 +57,14 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
         if (!serverDO.getSafeSecret().equals(safeSecret)) {
             throw new RuntimeException("安全密钥错误");
         }
-        Long interfaceId = gatewayInterfaceMapper.selectOne(new LambdaQueryWrapper<GatewayInterfaceDO>()
+        GatewayInterfaceDO selectedOne = gatewayInterfaceMapper.selectOne(new LambdaQueryWrapper<GatewayInterfaceDO>()
                 .eq(GatewayInterfaceDO::getInterfaceName, reqVO.getInterfaceName())
-                .last("limit 1")).getId();
+                .last("limit 1"));
         GatewayInterfaceDO interfaceDO = new GatewayInterfaceDO();
-        interfaceDO.setId(interfaceId == null ? uniqueIdUtil.nextId() : interfaceId);
+        interfaceDO.setId(selectedOne == null ? uniqueIdUtil.nextId() : selectedOne.getId());
         interfaceDO.setServerId(serverId);
         interfaceDO.setInterfaceName(reqVO.getInterfaceName());
-        if (interfaceId == null) {
+        if (selectedOne == null) {
             gatewayInterfaceMapper.insert(interfaceDO);
         } else {
             gatewayInterfaceMapper.updateById(interfaceDO);
@@ -61,9 +72,11 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
 
         for (MethodSaveDomain method : reqVO.getMethods()) {
             GatewayMethodDO methodDO = new GatewayMethodDO();
-            Long methodId = gatewayMethodMapper.selectOne(new LambdaQueryWrapper<GatewayMethodDO>()
+            GatewayMethodDO gatewayMethodDO = gatewayMethodMapper.selectOne(new LambdaQueryWrapper<GatewayMethodDO>()
                     .eq(GatewayMethodDO::getMethodName, method.getMethodName())
-                    .last("limit 1")).getId();
+                    .eq(GatewayMethodDO::getInterfaceId, interfaceDO.getId())
+                    .eq(GatewayMethodDO::getParameterType, method.getParameterType())
+                    .last("limit 1"));
             methodDO.setInterfaceId(interfaceDO.getId());
             methodDO.setMethodName(method.getMethodName());
             methodDO.setParameterType(method.getParameterType());
@@ -72,18 +85,47 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
             methodDO.setIsHttp(method.getIsHttp());
             methodDO.setHttpType(method.getHttpType());
             try {
-                if (methodId == null) {
+                if (gatewayMethodDO == null) {
                     methodDO.setId(uniqueIdUtil.nextId());
                     gatewayMethodMapper.insert(methodDO);
                 } else {
-                    methodDO.setId(methodId);
+                    methodDO.setId(gatewayMethodDO.getId());
                     gatewayMethodMapper.updateById(methodDO);
                 }
             } catch (Exception e) {
                 throw new RuntimeException("方法部分参数为空");
             }
         }
+        new Thread(() -> {
+            interfaceFlushScheduled.flushURL();
+            registerMethodURL(reqVO, serverId, serverDO.getServerName());
+        }).start();
         return interfaceDO.getId();
+    }
+
+    private void registerMethodURL(InterfaceMethodSaveReqVO reqVO, Long serverId, String serverName) {
+        String serverUrl = reqVO.getServerUrl();
+        GatewayServerDetailDO detailDO = gatewayServerDetailMapper.selectOne(new LambdaQueryWrapper<GatewayServerDetailDO>()
+                .eq(GatewayServerDetailDO::getServerAddress, serverUrl)
+                .last("limit 1"));
+        if (detailDO == null) {
+            detailDO = new GatewayServerDetailDO();
+            detailDO.setId(uniqueIdUtil.nextId());
+            detailDO.setStatus(StatusEnum.ENABLE.getValue());
+            detailDO.setServerAddress(serverUrl);
+            detailDO.setServerId(serverId);
+            gatewayServerDetailMapper.insert(detailDO);
+        } else {
+            detailDO.setStatus(StatusEnum.ENABLE.getValue());
+            detailDO.setServerId(serverId);
+            gatewayServerDetailMapper.updateById(detailDO);
+        }
+        List<MethodSaveDomain> methods = reqVO.getMethods();
+        for (MethodSaveDomain method : methods) {
+            String key = "Server" + ":" + serverName + ":" + reqVO.getServerUrl();
+            redisTemplate.opsForValue().set(key, method.getUrl());
+        }
+        redisPubUtil.publish("ServerFlush", serverName);
     }
 }
 

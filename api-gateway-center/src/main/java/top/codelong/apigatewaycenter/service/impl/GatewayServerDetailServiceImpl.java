@@ -2,13 +2,21 @@ package top.codelong.apigatewaycenter.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerDetailDO;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayServerDetailMapper;
+import top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper;
+import top.codelong.apigatewaycenter.dto.req.HeartBeatReqVO;
 import top.codelong.apigatewaycenter.dto.req.ServerDetailRegisterReqVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
 import top.codelong.apigatewaycenter.service.GatewayServerDetailService;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Administrator
@@ -20,6 +28,8 @@ import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 public class GatewayServerDetailServiceImpl extends ServiceImpl<GatewayServerDetailMapper, GatewayServerDetailDO> implements GatewayServerDetailService {
     private final GatewayServerDetailMapper gatewayServerDetailMapper;
     private final UniqueIdUtil uniqueIdUtil;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final GatewayServerMapper gatewayServerMapper;
 
     @Override
     public Boolean register(ServerDetailRegisterReqVO reqVO) {
@@ -52,6 +62,27 @@ public class GatewayServerDetailServiceImpl extends ServiceImpl<GatewayServerDet
         } catch (Exception e) {
             throw new RuntimeException("下线失败");
         }
+        return true;
+    }
+
+    @Override
+    public Boolean keepAlive(HeartBeatReqVO reqVO) {
+        String safeKey = reqVO.getSafeKey();
+        String server = gatewayServerMapper.getServerNameBySafeKey(safeKey);
+        Map<Object, Object> entries = redisTemplate.opsForHash()
+                .entries("heartbeat:server:" + server + ":" + reqVO.getAddr());
+        if (entries.isEmpty()) {
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("lastTime", LocalDateTime.now().toString());
+            map.put("startTime", LocalDateTime.now().toString());
+            map.put("url", reqVO.getAddr());
+            map.put("weight", 1);
+            redisTemplate.opsForHash().putAll("heartbeat:server:" + server + ":" + reqVO.getAddr(), map);
+            redisTemplate.expire("heartbeat:server:" + server + ":" + reqVO.getAddr(), 30, TimeUnit.SECONDS);
+            return true;
+        }
+        redisTemplate.opsForHash().put("heartbeat:server:" + server + ":" + reqVO.getAddr(), "lastTime", LocalDateTime.now().toString());
+        redisTemplate.expire("heartbeat:server:" + server + ":" + reqVO.getAddr(), 30, TimeUnit.SECONDS);
         return true;
     }
 }

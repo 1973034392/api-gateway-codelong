@@ -9,6 +9,8 @@ import java.util.List;
 @Data
 @Schema(description = "接口和方法 ReqVO")
 public class InterfaceMethodSaveReqVO {
+    @Schema(description = "服务URL")
+    private String serverUrl;
     @Schema(description = "安全key")
     private String safeKey;
     @Schema(description = "安全密钥")

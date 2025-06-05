@@ -8,6 +8,7 @@ import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO;
+import top.codelong.apigatewaycenter.dto.req.HeartBeatReqVO;
 import top.codelong.apigatewaycenter.service.GatewayGroupDetailService;
 
 @RestController
@@ -51,5 +52,17 @@ public class GatewayGroupDetailController {
     @Operation(summary = "更新网关实例组详情状态")
     public Result<Boolean> updateStatus(@RequestParam Long id) {
         return Result.success(gatewayGroupDetailService.updateStatus(id));
+    }
+
+    @GetMapping("/get/server-name")
+    @Operation(summary = "获得当前实例服务名")
+    public Result<String> getServerName(String groupKey) {
+        return Result.success(gatewayGroupDetailService.getServerName(groupKey));
+    }
+
+    @PutMapping("/keep-alive")
+    @Operation(summary = "维持网关实例组详情心跳")
+    public Result<Boolean> keepAlive(@RequestBody HeartBeatReqVO reqVO) {
+        return Result.success(gatewayGroupDetailService.keepAlive(reqVO));
     }
 }

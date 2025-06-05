@@ -18,4 +18,13 @@
             </if>
         </where>
     </select>
+    <select id="getServerNameByGroupKey" resultType="java.lang.String">
+        select s.server_name
+        from gateway_server s
+                 inner join gateway_server_group_rel rel on s.id = rel.server_id
+                 inner join gateway_group g on g.id = rel.group_id
+        where g.group_key = #{groupKey}
+          and s.status = 1
+        limit 1
+    </select>
 </mapper>

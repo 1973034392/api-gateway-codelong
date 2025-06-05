@@ -22,6 +22,8 @@ public interface GatewayServerMapper extends BaseMapper<GatewayServerDO> {
     List<GatewayServerDO> pageInfo(Page<ServerSaveReqVO> page, String name, Integer status, String addr);
 
     Long getIdBySafeKey(String safeKey);
+
+    String getServerNameBySafeKey(String safeKey);
 }
 
 
