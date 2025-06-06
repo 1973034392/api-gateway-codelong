@@ -81,10 +81,6 @@ public class GatewayRegisterService implements BeanPostProcessor {
         return BeanPostProcessor.super.postProcessAfterInitialization(bean, beanName);
     }
 
-    private void serverRegister() {
-
-    }
-
     // 构建方法元数据
     private MethodSaveDomain buildMethodMetadata(Method method, ApiMethod apiProducerMethod) {
         MethodSaveDomain saveDomain = new MethodSaveDomain();
