@@ -17,12 +17,15 @@ import top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper;
 import top.codelong.apigatewaycenter.dto.domain.MethodSaveDomain;
 import top.codelong.apigatewaycenter.dto.req.InterfaceMethodSaveReqVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
-import top.codelong.apigatewaycenter.scheduled.InterfaceFlushScheduled;
 import top.codelong.apigatewaycenter.service.GatewayInterfaceService;
 import top.codelong.apigatewaycenter.utils.RedisPubUtil;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author Administrator
@@ -38,8 +41,9 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
     private final GatewayServerDetailMapper gatewayServerDetailMapper;
     private final UniqueIdUtil uniqueIdUtil;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final InterfaceFlushScheduled interfaceFlushScheduled;
     private final RedisPubUtil redisPubUtil;
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(1);
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -96,14 +100,28 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
                 throw new RuntimeException("方法部分参数为空");
             }
         }
-        new Thread(() -> {
-            interfaceFlushScheduled.flushURL();
-            registerMethodURL(reqVO, serverId, serverDO.getServerName());
-        }).start();
+        executor.submit(() -> {
+            registerMethod(serverDO.getServerName(), interfaceDO.getInterfaceName(), reqVO.getMethods());
+            registerService(reqVO, serverId);
+        });
         return interfaceDO.getId();
     }
 
-    private void registerMethodURL(InterfaceMethodSaveReqVO reqVO, Long serverId, String serverName) {
+    private void registerMethod(String serverName, String interfaceName, List<MethodSaveDomain> methods) {
+        for (MethodSaveDomain method : methods) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("interfaceName", interfaceName);
+            params.put("methodName", method.getMethodName());
+            params.put("parameterType", method.getParameterType());
+            params.put("isAuth", method.getIsAuth());
+            params.put("isHttp", method.getIsHttp());
+            params.put("httpType", method.getHttpType());
+            redisTemplate.opsForHash().putAll("URL:" + serverName + ":" + method.getUrl(), params);
+        }
+        redisPubUtil.ServerFlush(serverName);
+    }
+
+    private void registerService(InterfaceMethodSaveReqVO reqVO, Long serverId) {
         String serverUrl = reqVO.getServerUrl();
         GatewayServerDetailDO detailDO = gatewayServerDetailMapper.selectOne(new LambdaQueryWrapper<GatewayServerDetailDO>()
                 .eq(GatewayServerDetailDO::getServerAddress, serverUrl)
@@ -120,12 +138,6 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
             detailDO.setServerId(serverId);
             gatewayServerDetailMapper.updateById(detailDO);
         }
-        List<MethodSaveDomain> methods = reqVO.getMethods();
-        for (MethodSaveDomain method : methods) {
-            String key = "Server" + ":" + serverName + ":" + reqVO.getServerUrl();
-            redisTemplate.opsForValue().set(key, method.getUrl());
-        }
-        redisPubUtil.publish("ServerFlush", serverName); //TODO 刷新本地缓存
     }
 }
 

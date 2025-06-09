@@ -154,7 +154,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
 
     @Override
     public Boolean keepAlive(HeartBeatReqVO reqVO) {
-        String server = reqVO.getServer(); //TODO 心跳机制完善
+        String server = reqVO.getServer();
         Map<Object, Object> entries = redisTemplate.opsForHash()
                 .entries("heartbeat:group:" + server + ":" + reqVO.getAddr());
         if (entries.isEmpty()) {

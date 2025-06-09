@@ -9,12 +9,12 @@ import top.codelong.service.TestService;
 @ApiInterface(interfaceName = "测试接口")
 @Service
 public class TestServiceImpl implements TestService {
-    @ApiMethod(isAuth = 0, isHttp = 0, httpType = HttpTypeEnum.GET, url = "test")
+    @ApiMethod(url = "test")
     public String test(String name) {
-        return "hello world";
+        return "1  " + name;
     }
 
-    @ApiMethod(isAuth = 0, isHttp = 1, httpType = HttpTypeEnum.GET, url = "test2")
+    @ApiMethod(isAuth = 1, isHttp = 1, httpType = HttpTypeEnum.GET, url = "/test2")
     public String test2(String name) {
         return "";
     }

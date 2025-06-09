@@ -26,7 +26,7 @@ public class HeartbeatService {
 
     private final Logger logger = LoggerFactory.getLogger(HeartbeatService.class);
 
-    public void heartbeat() { //TODO 服务下线通知
+    public void heartbeat() {
         String safeKey = config.getSafeKey();
         String serverPort = environment.getProperty("server.port", "8080");
         String localIp = "localhost";

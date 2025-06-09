@@ -107,6 +107,7 @@ public class GatewayRegisterService implements BeanPostProcessor {
 
         ServiceConfig serviceConfig = new ServiceConfig<>();
         serviceConfig.setApplication(applicationConfig);
+        serviceConfig.setGeneric(String.valueOf(true));
         serviceConfig.setProtocol(protocolConfig);
         serviceConfig.setRegistry(registryConfig);
         serviceConfig.setInterface(interfaceClass);
@@ -116,8 +117,6 @@ public class GatewayRegisterService implements BeanPostProcessor {
         serviceConfig.setGroup("method-group-" + saveDomain.getMethodName());
 
         serviceConfig.export();
-        // 输出对应的 URL
-        saveDomain.setUrl(serviceConfig.getExportedUrls().get(0).toString());
     }
 
 

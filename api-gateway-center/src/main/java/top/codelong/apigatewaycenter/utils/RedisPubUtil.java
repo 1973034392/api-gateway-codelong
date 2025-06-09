@@ -10,8 +10,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RedisPubUtil {
     private final RedisTemplate<String, String> redisTemplate;
-    //TODO 消息统一管理
-    public void publish(String channel, String message) {
-        redisTemplate.convertAndSend(channel, message);
+
+    /**
+     * TODO 刷新本地缓存
+     */
+    public void ServerFlush(String serverName) {
+        redisTemplate.convertAndSend("ServerFlush", serverName);
+    }
+
+    /**
+     * 发送心跳请求
+     */
+    public void heartBeat() {
+        redisTemplate.convertAndSend("heartBeat", "来自网关中心的心跳请求");
     }
 }

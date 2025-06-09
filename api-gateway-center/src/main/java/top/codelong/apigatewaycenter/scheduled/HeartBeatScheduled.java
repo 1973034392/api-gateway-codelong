@@ -12,6 +12,11 @@ public class HeartBeatScheduled {
 
     @Scheduled(cron = "0/15 * * * * ?")
     public void heartBeat() {
-        redisPubUtil.publish("heartBeat", "来自网关中心的心跳请求");
+        redisPubUtil.heartBeat();
+    }
+
+    @Scheduled(cron = "0 0/3 * * * ?")
+    public void offline(){
+        // TODO 根据心跳信息修改离线服务状态
     }
 }
