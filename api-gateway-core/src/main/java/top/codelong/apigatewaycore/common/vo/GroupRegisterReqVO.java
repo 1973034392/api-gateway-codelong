@@ -1,4 +1,4 @@
-package top.codelong.apigatewaycore.common;
+package top.codelong.apigatewaycore.common.vo;
 
 import lombok.Data;
 

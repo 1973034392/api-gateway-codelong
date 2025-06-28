@@ -10,6 +10,7 @@ import top.codelong.apigatewaycenter.dto.req.GroupDetailPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupRegisterReqVO;
 import top.codelong.apigatewaycenter.dto.req.HeartBeatReqVO;
+import top.codelong.apigatewaycenter.dto.resp.GroupDetailRegisterRespVO;
 import top.codelong.apigatewaycenter.service.GatewayGroupDetailService;
 
 @RestController
@@ -63,7 +64,7 @@ public class GatewayGroupDetailController {
 
     @PostMapping("/register")
     @Operation(summary = "注册网关实例组详情")
-    public Result<String> register(@RequestBody GroupRegisterReqVO reqVO) {
+    public Result<GroupDetailRegisterRespVO> register(@RequestBody GroupRegisterReqVO reqVO) {
         return Result.success(gatewayGroupDetailService.register(reqVO));
     }
 

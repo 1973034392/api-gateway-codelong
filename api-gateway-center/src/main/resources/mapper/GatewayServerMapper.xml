@@ -34,13 +34,11 @@
         where safe_key = #{safeKey}
         limit 1
     </select>
-    <select id="getServerNameByGroupId" resultType="java.lang.String">
-        select server_name
+    <select id="getServerByGroupId" resultType="top.codelong.apigatewaycenter.dao.entity.GatewayServerDO">
+        select gateway_server.*
         from gateway_server
                  inner join gateway_server_group_rel rel on rel.server_id = gateway_server.id
                  inner join gateway_group g on g.id = rel.group_id
         where g.id = #{groupId}
     </select>
-
-
 </mapper>

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.dao.entity.GatewayGroupDetailDO;
+import top.codelong.apigatewaycenter.dao.entity.GatewayServerDO;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayGroupDetailMapper;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayGroupMapper;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper;
@@ -16,6 +17,7 @@ import top.codelong.apigatewaycenter.dto.req.GroupDetailPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupRegisterReqVO;
 import top.codelong.apigatewaycenter.dto.req.HeartBeatReqVO;
+import top.codelong.apigatewaycenter.dto.resp.GroupDetailRegisterRespVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
 import top.codelong.apigatewaycenter.service.GatewayGroupDetailService;
 import top.codelong.apigatewaycenter.utils.NginxConfUtil;
@@ -160,16 +162,20 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
 
     @Override
     @Transactional
-    public String register(GroupRegisterReqVO reqVO) {
+    public GroupDetailRegisterRespVO register(GroupRegisterReqVO reqVO) {
         Integer count = gatewayGroupDetailMapper.registerIfAbsent(reqVO.getDetailAddress());
         Long groupId = gatewayGroupMapper.getIdByKey(reqVO.getGroupKey());
         if (groupId == null) {
             throw new RuntimeException("请选择所属网关组");
         }
-        String serverName = gatewayServerMapper.getServerNameByGroupId(groupId);
+        GatewayServerDO server = gatewayServerMapper.getServerByGroupId(groupId);
         if (count > 0) {
             redisPubUtil.heartBeat();
-            return serverName;
+            return GroupDetailRegisterRespVO.builder()
+                    .serverName(server.getServerName())
+                    .safeKey(server.getSafeKey())
+                    .safeSecret(server.getSafeSecret())
+                    .build();
         }
         Long detailId = gatewayGroupDetailMapper.getIdByAddr(reqVO.getDetailAddress());
         GatewayGroupDetailDO detailDO = new GatewayGroupDetailDO();
@@ -190,7 +196,11 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         } catch (Exception e) {
             throw new RuntimeException("注册创建失败");
         }
-        return serverName;
+        return GroupDetailRegisterRespVO.builder()
+                .serverName(server.getServerName())
+                .safeKey(server.getSafeKey())
+                .safeSecret(server.getSafeSecret())
+                .build();
     }
 
     @Override
