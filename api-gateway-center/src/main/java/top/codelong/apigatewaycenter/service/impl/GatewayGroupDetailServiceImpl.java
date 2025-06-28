@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.dao.entity.GatewayGroupDetailDO;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayGroupDetailMapper;
@@ -13,9 +14,12 @@ import top.codelong.apigatewaycenter.dao.mapper.GatewayGroupMapper;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayServerMapper;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO;
+import top.codelong.apigatewaycenter.dto.req.GroupRegisterReqVO;
 import top.codelong.apigatewaycenter.dto.req.HeartBeatReqVO;
 import top.codelong.apigatewaycenter.enums.StatusEnum;
 import top.codelong.apigatewaycenter.service.GatewayGroupDetailService;
+import top.codelong.apigatewaycenter.utils.NginxConfUtil;
+import top.codelong.apigatewaycenter.utils.RedisPubUtil;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 
 import java.time.LocalDateTime;
@@ -35,9 +39,11 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
 
     private final GatewayGroupDetailMapper gatewayGroupDetailMapper;
     private final GatewayGroupMapper gatewayGroupMapper;
+    private final GatewayServerMapper gatewayServerMapper;
     private final UniqueIdUtil uniqueIdUtil;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final GatewayServerMapper gatewayServerMapper;
+    private final NginxConfUtil nginxConfUtil;
+    public final RedisPubUtil redisPubUtil;
 
     @Override
     public Long create(GroupDetailSaveReqVO reqVO) {
@@ -153,8 +159,44 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
     }
 
     @Override
-    public Boolean keepAlive(HeartBeatReqVO reqVO) {
-        String server = reqVO.getServer();
+    @Transactional
+    public String register(GroupRegisterReqVO reqVO) {
+        Integer count = gatewayGroupDetailMapper.registerIfAbsent(reqVO.getDetailAddress());
+        Long groupId = gatewayGroupMapper.getIdByKey(reqVO.getGroupKey());
+        if (groupId == null) {
+            throw new RuntimeException("请选择所属网关组");
+        }
+        String serverName = gatewayServerMapper.getServerNameByGroupId(groupId);
+        if (count > 0) {
+            redisPubUtil.heartBeat();
+            return serverName;
+        }
+        Long detailId = gatewayGroupDetailMapper.getIdByAddr(reqVO.getDetailAddress());
+        GatewayGroupDetailDO detailDO = new GatewayGroupDetailDO();
+        detailDO.setId(detailId == null ? uniqueIdUtil.nextId() : detailId);
+        detailDO.setGroupId(groupId);
+        detailDO.setDetailName(reqVO.getDetailName());
+        detailDO.setDetailAddress(reqVO.getDetailAddress());
+        detailDO.setDetailWeight(reqVO.getDetailWeight());
+        detailDO.setStatus(StatusEnum.ENABLE.getValue());
+        try {
+            if (detailId != null) {
+                gatewayGroupDetailMapper.updateById(detailDO);
+            } else {
+                gatewayGroupDetailMapper.insert(detailDO);
+            }
+            nginxConfUtil.addInstance(reqVO.getDetailAddress(), reqVO.getDetailWeight());
+            redisPubUtil.heartBeat();
+        } catch (Exception e) {
+            throw new RuntimeException("注册创建失败");
+        }
+        return serverName;
+    }
+
+    @Override
+    public String keepAlive(HeartBeatReqVO reqVO) {
+        String key = reqVO.getGroupKey();
+        String server = getServerName(key);
         Map<Object, Object> entries = redisTemplate.opsForHash()
                 .entries("heartbeat:group:" + server + ":" + reqVO.getAddr());
         if (entries.isEmpty()) {
@@ -162,14 +204,14 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
             map.put("lastTime", LocalDateTime.now().toString());
             map.put("startTime", LocalDateTime.now().toString());
             map.put("url", reqVO.getAddr());
-            map.put("weight", 1);
+            map.put("weight", reqVO.getWeight());
             redisTemplate.opsForHash().putAll("heartbeat:group:" + server + ":" + reqVO.getAddr(), map);
             redisTemplate.expire("heartbeat:group:" + server + ":" + reqVO.getAddr(), 30, TimeUnit.SECONDS);
-            return true;
+            return server;
         }
         redisTemplate.opsForHash().put("heartbeat:group:" + server + ":" + reqVO.getAddr(), "lastTime", LocalDateTime.now().toString());
         redisTemplate.expire("heartbeat:group:" + server + ":" + reqVO.getAddr(), 30, TimeUnit.SECONDS);
-        return true;
+        return server;
     }
 }
 

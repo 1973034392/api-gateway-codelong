@@ -14,9 +14,4 @@ public class HeartBeatScheduled {
     public void heartBeat() {
         redisPubUtil.heartBeat();
     }
-
-    @Scheduled(cron = "0 0/3 * * * ?")
-    public void offline(){
-        // TODO 根据心跳信息修改离线服务状态
-    }
 }

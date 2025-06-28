@@ -138,6 +138,7 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
             detailDO.setServerId(serverId);
             gatewayServerDetailMapper.updateById(detailDO);
         }
+        redisPubUtil.heartBeat();
     }
 }
 

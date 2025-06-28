@@ -6,8 +6,12 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "nginx")
+@ConfigurationProperties(prefix = "nginx.config.remote")
 public class NginxConfig {
-    private String address;
-    private String config;
+    private String host;
+    private int port = 22;
+    private String username;
+    private String password;
+    private String configPath;
+    private String reloadCommand;
 }

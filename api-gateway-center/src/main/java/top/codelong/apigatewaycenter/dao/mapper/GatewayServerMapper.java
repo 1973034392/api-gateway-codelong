@@ -24,6 +24,8 @@ public interface GatewayServerMapper extends BaseMapper<GatewayServerDO> {
     Long getIdBySafeKey(String safeKey);
 
     String getServerNameBySafeKey(String safeKey);
+
+    String getServerNameByGroupId(Long groupId);
 }
 
 

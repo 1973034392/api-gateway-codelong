@@ -33,6 +33,4 @@ public class GatewayServerDetailController {
     public Result<Boolean> keepAlive(@RequestBody HeartBeatReqVO reqVO) {
         return Result.success(gatewayServerDetailService.keepAlive(reqVO));
     }
-
-    //TODO 服务下线
 }

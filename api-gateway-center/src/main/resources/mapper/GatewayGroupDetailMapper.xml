@@ -3,6 +3,17 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="top.codelong.apigatewaycenter.dao.mapper.GatewayGroupDetailMapper">
+    <update id="offline">
+        update gateway_group_detail
+        set status = 0
+        where detail_address = #{s}
+    </update>
+    <update id="registerIfAbsent">
+        update gateway_group_detail
+        set status = 1
+        where detail_address = #{detailAddress}
+        and status = 0
+    </update>
     <select id="pageInfo" resultType="top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO">
         select d.id,
         g.group_name,

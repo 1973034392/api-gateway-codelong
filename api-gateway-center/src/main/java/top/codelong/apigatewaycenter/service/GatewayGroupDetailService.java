@@ -5,6 +5,7 @@ import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.dao.entity.GatewayGroupDetailDO;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO;
+import top.codelong.apigatewaycenter.dto.req.GroupRegisterReqVO;
 import top.codelong.apigatewaycenter.dto.req.HeartBeatReqVO;
 
 /**
@@ -26,7 +27,9 @@ public interface GatewayGroupDetailService extends IService<GatewayGroupDetailDO
 
     PageResult<GroupDetailSaveReqVO> page(GroupDetailPageReqVO reqVO);
 
-    Boolean keepAlive(HeartBeatReqVO reqVO);
+    String register(GroupRegisterReqVO reqVO);
+
+    String keepAlive(HeartBeatReqVO reqVO);
 
     String getServerName(String groupKey);
 }

@@ -8,6 +8,10 @@
         update gateway_server_detail
         set status = 1
         where server_address = #{serverAddress}
-          and status = 0
+    </update>
+    <update id="offline">
+        update gateway_server_detail
+        set status = 0
+        where server_address = #{s}
     </update>
 </mapper>

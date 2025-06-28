@@ -14,6 +14,8 @@ import top.codelong.apigatewaycenter.dao.entity.GatewayServerDetailDO;
 public interface GatewayServerDetailMapper extends BaseMapper<GatewayServerDetailDO> {
 
     Integer registerIfAbsent(String serverAddress);
+
+    void offline(String s);
 }
 
 

@@ -24,8 +24,14 @@ knife4j:
   enable: false
 
 nginx:
-  address: http://127.0.0.1:80
-  config: /etc/nginx/nginx.conf
+  config:
+    remote:
+      host: 192.168.154.128
+      port: 22
+      username: root
+      password: 3219768925
+      config-path: /root/nginx/nginx.conf
+      reload-command: "docker exec -it nginx nginx -s reload"
 unique-id:
   nodeIdBits: 10
   sequenceBits: 12

@@ -10,4 +10,5 @@ public class HeartBeatReqVO {
     private String groupKey;
     private String server;
     private String addr;
+    private Integer weight;
 }
