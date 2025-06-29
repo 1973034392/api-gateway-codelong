@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
+import top.codelong.apigatewaycore.common.GatewayServer;
 import top.codelong.apigatewaycore.config.GlobalConfiguration;
 
 import java.net.InetAddress;
@@ -21,6 +22,8 @@ import java.util.Map;
 public class RedisMessageListener implements MessageListener {
     @Resource
     private GlobalConfiguration config;
+    @Resource
+    private GatewayServer gatewayServer;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -53,6 +56,8 @@ public class RedisMessageListener implements MessageListener {
                 return;
             }
             log.info("心跳维持成功: {}", response.body());
+        } else if (channel.equals("service-launched")) {
+            gatewayServer.update();
         }
     }
 }

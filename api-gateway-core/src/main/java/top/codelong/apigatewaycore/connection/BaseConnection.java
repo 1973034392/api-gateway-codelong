@@ -1,7 +1,9 @@
 package top.codelong.apigatewaycore.connection;
 
-public interface BaseConnection {
-    Object send(Object parameter);
+import top.codelong.apigatewaycore.common.result.Result;
 
-    void close();
+import java.util.Map;
+
+public interface BaseConnection {
+    Result send(Map<String, Object> parameter);
 }

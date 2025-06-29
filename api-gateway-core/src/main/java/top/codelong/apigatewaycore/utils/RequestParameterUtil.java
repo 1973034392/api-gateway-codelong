@@ -16,9 +16,9 @@ import java.util.Optional;
 
 public class RequestParameterUtil {
     /**
-     *  获得请求路径
+     * 获得请求路径
      */
-    public static String getUri(FullHttpRequest request) {
+    public static String getUrl(FullHttpRequest request) {
         String uri = request.uri();
         int idx = uri.indexOf("?");
         uri = idx > 0 ? uri.substring(0, idx) : uri;
@@ -55,9 +55,10 @@ public class RequestParameterUtil {
                     });
                     return parameterMap;
                 case "application/json":
-                    ByteBuf byteBuf = request.content().copy();
+                    ByteBuf byteBuf = request.content();
                     if (byteBuf.isReadable()) {
                         String content = byteBuf.toString(StandardCharsets.UTF_8);
+                        byteBuf.release();
                         return JSON.parseObject(content);
                     }
                     break;
@@ -83,9 +84,10 @@ public class RequestParameterUtil {
                     return parameterMap;
                 }
                 case "application/json" -> {
-                    ByteBuf byteBuf = request.content().copy();
+                    ByteBuf byteBuf = request.content();
                     if (byteBuf.isReadable()) {
                         String content = byteBuf.toString(StandardCharsets.UTF_8);
+                        byteBuf.release();
                         return JSON.parseObject(content);
                     }
                 }

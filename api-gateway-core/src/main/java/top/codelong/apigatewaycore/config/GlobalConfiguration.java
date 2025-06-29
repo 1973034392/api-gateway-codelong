@@ -11,15 +11,21 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.rpc.service.GenericService;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycore.common.HttpStatement;
 import top.codelong.apigatewaycore.common.vo.GroupDetailRegisterRespVO;
 import top.codelong.apigatewaycore.common.vo.GroupRegisterReqVO;
-import top.codelong.apigatewaycore.connection.ConnectionResourcePool;
 
 import java.net.InetAddress;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Data
 @Component
@@ -42,17 +48,41 @@ public class GlobalConfiguration {
     private String serverName;
     private String safeKey;
     private String safeSecret;
-    private ConnectionResourcePool<String> connectionPool;
     private Cache<String, HttpStatement> httpStatementMap;
+    private CloseableHttpClient httpClient;
+    private ConcurrentHashMap<String, GenericService> dubboServiceMap = new ConcurrentHashMap<>();
 
     @Resource
     private Environment environment;
 
     @PostConstruct
     public void init() {
-        this.httpStatementMap = CacheUtil.newLRUCache(1000, 3600 * 1000L);
-        this.connectionPool = new ConnectionResourcePool<>(maxCache);
+        this.httpStatementMap = CacheUtil.newLRUCache(maxCache);
         this.serverName = register();
+        createHTTPClient();
+    }
+
+    private void createHTTPClient() {
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(500);
+        cm.setDefaultMaxPerRoute(50);
+
+        // 增加空闲连接检查
+        cm.setValidateAfterInactivity(30_000);
+
+        httpClient = HttpClients.custom()
+                .setConnectionManager(cm)
+                .build();
+
+        // 添加连接回收线程
+        startConnectionEvictor(cm);
+    }
+
+    private void startConnectionEvictor(PoolingHttpClientConnectionManager cm) {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            cm.closeExpiredConnections();
+            cm.closeIdleConnections(30, TimeUnit.SECONDS);
+        }, 30, 30, TimeUnit.SECONDS);
     }
 
     /**

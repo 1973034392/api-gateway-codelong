@@ -12,10 +12,10 @@ public class RedisPubUtil {
     private final RedisTemplate<String, String> redisTemplate;
 
     /**
-     * TODO 刷新本地缓存
+     * 刷新本地缓存
      */
-    public void ServerFlush(String serverName) {
-        redisTemplate.convertAndSend("ServerFlush", serverName);
+    public void ServerFlush() {
+        redisTemplate.convertAndSend("service-launched", "来自网关中心的刷新本地缓存请求");
     }
 
     /**

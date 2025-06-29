@@ -118,7 +118,6 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
             params.put("httpType", method.getHttpType());
             redisTemplate.opsForHash().putAll("URL:" + serverName + ":" + method.getUrl(), params);
         }
-        redisPubUtil.ServerFlush(serverName);
     }
 
     private void registerService(InterfaceMethodSaveReqVO reqVO, Long serverId) {
@@ -138,6 +137,7 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
             detailDO.setServerId(serverId);
             gatewayServerDetailMapper.updateById(detailDO);
         }
+        redisPubUtil.ServerFlush();
         redisPubUtil.heartBeat();
     }
 }

@@ -31,7 +31,7 @@ public class InterfaceCacheUtil {
         HttpStatement statement = HttpStatement.builder()
                 .interfaceName((String) entries.get("interfaceName"))
                 .methodName((String) entries.get("methodName"))
-                .parameterType((String) entries.get("parameterType"))
+                .parameterType(((String) entries.get("parameterType")).split(","))
                 .isAuth(entries.get("isAuth").equals(1))
                 .isHttp(entries.get("isHttp").equals(1))
                 .httpType(HTTPTypeEnum.valueOf((String) entries.get("httpType")))

@@ -16,6 +16,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayGroupDetailMapper;
 import top.codelong.apigatewaycenter.dao.mapper.GatewayServerDetailMapper;
 import top.codelong.apigatewaycenter.utils.NginxConfUtil;
+import top.codelong.apigatewaycenter.utils.RedisPubUtil;
 
 @Configuration
 public class RedisConfig {
@@ -27,6 +28,8 @@ public class RedisConfig {
     private GatewayGroupDetailMapper gatewayGroupDetailMapper;
     @Resource
     private NginxConfUtil nginxConfUtil;
+    @Resource
+    private RedisPubUtil redisPubUtil;
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory, ObjectMapper objectMapper) {
@@ -59,6 +62,7 @@ public class RedisConfig {
             if (expiredKey.contains("heartbeat:server")) {
                 String[] s = expiredKey.split(":");
                 gatewayServerDetailMapper.offline(s[3] + ":" + s[4]);
+                redisPubUtil.ServerFlush();
             } else if (expiredKey.contains("heartbeat:group")) {
                 String[] s = expiredKey.split(":");
                 gatewayGroupDetailMapper.offline(s[3] + ":" + s[4]);

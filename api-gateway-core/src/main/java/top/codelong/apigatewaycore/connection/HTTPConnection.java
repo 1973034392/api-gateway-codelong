@@ -1,13 +1,22 @@
 package top.codelong.apigatewaycore.connection;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+import top.codelong.apigatewaycore.common.HttpStatement;
+import top.codelong.apigatewaycore.common.result.Result;
+import top.codelong.apigatewaycore.executors.BaseExecutor;
+import top.codelong.apigatewaycore.executors.HTTPExecutor;
+
+import java.util.Map;
+
 public class HTTPConnection implements BaseConnection {
-    @Override
-    public Object send(Object parameter) {
-        return null;
+    private final BaseExecutor executor;
+
+    public HTTPConnection(String url, HttpStatement httpStatement, CloseableHttpClient CloseableHttpClient) {
+        this.executor = new HTTPExecutor(url, httpStatement, CloseableHttpClient);
     }
 
     @Override
-    public void close() {
-
+    public Result send(Map<String, Object> parameter) {
+        return executor.execute(parameter);
     }
 }

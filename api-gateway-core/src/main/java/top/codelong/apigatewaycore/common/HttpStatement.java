@@ -13,7 +13,7 @@ import top.codelong.apigatewaycore.enums.HTTPTypeEnum;
 public class HttpStatement {
     private String interfaceName;
     private String methodName;
-    private String parameterType;
+    private String[] parameterType;
     private Boolean isAuth;
     private Boolean isHttp;
     private HTTPTypeEnum httpType;
