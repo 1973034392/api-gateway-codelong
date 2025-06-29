@@ -10,6 +10,9 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycore.socket.handlers.*;
 
+/**
+ * 服务端初始化器
+ */
 @Component
 public class ServerHandlerInitializer extends ChannelInitializer<SocketChannel> {
     @Resource

@@ -8,6 +8,9 @@ import top.codelong.apigatewaycore.executors.HTTPExecutor;
 
 import java.util.Map;
 
+/**
+ * HTTP连接
+ */
 public class HTTPConnection implements BaseConnection {
     private final BaseExecutor executor;
 

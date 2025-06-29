@@ -7,6 +7,9 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import top.codelong.findsdk.listener.RedisMessageListener;
 
+/**
+ * Redis配置类
+ */
 @Configuration
 public class RedisConfig {
     @Bean

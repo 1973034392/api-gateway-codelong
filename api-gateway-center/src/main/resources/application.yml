@@ -1,39 +1,52 @@
+# 服务器配置
 server:
-  port: 18080
+  port: 18080  # 应用服务端口号
+
+# Spring基础配置
 spring:
   application:
-    name: api-gateway-center
+    name: api-gateway-center  # 应用名称
+
+  # 数据源配置
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/api-gateway?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/api-gateway?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true  # MySQL连接URL
+    username: root  # 数据库用户名
+    password: 123456  # 数据库密码
+    driver-class-name: com.mysql.cj.jdbc.Driver  # JDBC驱动类
+
+  # Redis配置
   data:
     redis:
-      database: 0
-      host: localhost
-      port: 6379
+      database: 0  # Redis数据库索引
+      host: localhost  # Redis服务器地址
+      port: 6379  # Redis服务器端口
+
+# MyBatis-Plus配置
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true  # 开启下划线转驼峰命名
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # SQL日志输出实现
   global-config:
     db-config:
-      id-type: auto
-knife4j:
-  enable: false
+      id-type: auto  # ID生成策略为自动
 
+# Knife4j配置
+knife4j:
+  enable: false  # 是否启用Knife4j文档
+
+# Nginx远程配置
 nginx:
   config:
     remote:
-      host: 192.168.154.128
-      port: 22
-      username: root
-      password: 3219768925
-      config-path: /root/nginx/nginx.conf
-      reload-command: "docker exec -it nginx nginx -s reload"
-unique-id:
-  nodeIdBits: 10
-  sequenceBits: 12
-  nodeIdKey: snowflake:node_id
+      host: 192.168.154.128  # Nginx服务器IP地址
+      port: 22  # SSH端口
+      username: root  # SSH用户名
+      password: 3219768925  # SSH密码
+      config-path: /root/nginx/nginx.conf  # Nginx配置文件路径
+      reload-command: "docker exec -it nginx nginx -s reload"  # Nginx重载命令
 
+# 分布式ID生成配置
+unique-id:
+  nodeIdBits: 10  # 节点ID所占位数
+  sequenceBits: 12  # 序列号所占位数
+  nodeIdKey: snowflake:node_id  # Redis中存储节点ID的key前缀

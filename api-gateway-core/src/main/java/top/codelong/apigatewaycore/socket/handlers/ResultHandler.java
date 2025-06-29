@@ -10,6 +10,9 @@ import top.codelong.apigatewaycore.common.result.Result;
 import top.codelong.apigatewaycore.socket.BaseHandler;
 import top.codelong.apigatewaycore.utils.RequestResultUtil;
 
+/**
+ * 结果包装处理器
+ */
 @Component
 @ChannelHandler.Sharable
 public class ResultHandler extends BaseHandler<FullHttpRequest> {

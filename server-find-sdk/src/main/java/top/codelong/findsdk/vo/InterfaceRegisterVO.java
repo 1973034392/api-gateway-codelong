@@ -2,6 +2,9 @@ package top.codelong.findsdk.vo;
 
 import java.util.List;
 
+/**
+ * 接口注册 ReqVO
+ */
 public class InterfaceRegisterVO {
     private String serverUrl;
     private String safeKey;

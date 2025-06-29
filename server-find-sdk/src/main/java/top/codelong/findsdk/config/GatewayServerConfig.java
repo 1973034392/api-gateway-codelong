@@ -2,6 +2,9 @@ package top.codelong.findsdk.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * 网关服务配置
+ */
 @ConfigurationProperties(prefix = "gateway-server")
 public class GatewayServerConfig {
     private String serverName;

@@ -23,6 +23,7 @@ import top.codelong.apigatewaycenter.service.GatewayGroupDetailService;
 import top.codelong.apigatewaycenter.utils.NginxConfUtil;
 import top.codelong.apigatewaycenter.utils.RedisPubUtil;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -33,10 +34,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Administrator
  * @description 针对表【gateway_group_detail(网关实例信息表)】的数据库操作Service实现
+ * 提供网关实例的增删改查、注册、心跳检测等功能
  * @createDate 2025-05-23 16:05:44
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetailMapper, GatewayGroupDetailDO> implements GatewayGroupDetailService {
 
     private final GatewayGroupDetailMapper gatewayGroupDetailMapper;
@@ -47,20 +50,34 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
     private final NginxConfUtil nginxConfUtil;
     public final RedisPubUtil redisPubUtil;
 
+    /**
+     * 创建新的网关实例
+     *
+     * @param reqVO 创建请求参数
+     * @return 创建的网关实例ID
+     */
     @Override
     public Long create(GroupDetailSaveReqVO reqVO) {
+        log.info("开始创建新网关实例，请求参数：{}", reqVO);
+
         String key = reqVO.getGroupKey();
         if (StrUtil.isBlank(key)) {
+            log.warn("创建网关实例失败：未选择所属网关实例");
             throw new RuntimeException("请选择所属网关实例");
         }
+
         Long groupId = gatewayGroupMapper.getIdByKey(key);
         if (groupId == null) {
+            log.warn("创建网关实例失败：网关实例不存在，groupKey={}", key);
             throw new RuntimeException("网关实例不存在");
         }
+
         Long id = gatewayGroupDetailMapper.getIdByAddr(reqVO.getAddress());
         if (id != null) {
+            log.info("网关实例已存在，直接返回ID：{}", id);
             return id;
         }
+
         GatewayGroupDetailDO gatewayGroupDetailDO = new GatewayGroupDetailDO();
         gatewayGroupDetailDO.setId(uniqueIdUtil.nextId());
         gatewayGroupDetailDO.setGroupId(groupId);
@@ -68,20 +85,35 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         gatewayGroupDetailDO.setDetailAddress(reqVO.getAddress());
         gatewayGroupDetailDO.setDetailWeight(reqVO.getWeight());
         gatewayGroupDetailDO.setStatus(StatusEnum.ENABLE.getValue());
+
         gatewayGroupDetailMapper.insert(gatewayGroupDetailDO);
+        log.info("网关实例创建成功，ID：{}", gatewayGroupDetailDO.getId());
+
         return gatewayGroupDetailDO.getId();
     }
 
+    /**
+     * 更新网关实例信息
+     *
+     * @param reqVO 更新请求参数
+     * @return 操作结果
+     */
     @Override
     public Boolean update(GroupDetailSaveReqVO reqVO) {
+        log.info("开始更新网关实例，ID：{}", reqVO.getId());
+
         String key = reqVO.getGroupKey();
         if (StrUtil.isBlank(key)) {
+            log.warn("更新网关实例失败：未选择所属网关组");
             throw new RuntimeException("请选择所属网关组");
         }
+
         Long groupId = gatewayGroupMapper.getIdByKey(key);
         if (groupId == null) {
+            log.warn("更新网关实例失败：网关组实例不存在，groupKey={}", key);
             throw new RuntimeException("网关组实例不存在");
         }
+
         GatewayGroupDetailDO gatewayGroupDetailDO = new GatewayGroupDetailDO();
         gatewayGroupDetailDO.setId(reqVO.getId());
         gatewayGroupDetailDO.setDetailName(reqVO.getName());
@@ -89,32 +121,61 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         gatewayGroupDetailDO.setDetailWeight(reqVO.getWeight());
         gatewayGroupDetailDO.setStatus(null);
         gatewayGroupDetailDO.setGroupId(groupId);
+
         gatewayGroupDetailMapper.updateById(gatewayGroupDetailDO);
+        log.info("网关实例更新成功，ID：{}", reqVO.getId());
+
         return true;
     }
 
+    /**
+     * 删除网关实例
+     *
+     * @param id 要删除的网关实例ID
+     * @return 操作结果
+     */
     @Override
     public Boolean delete(Long id) {
+        log.info("开始删除网关实例，ID：{}", id);
+
         if (id == null) {
+            log.warn("删除网关实例失败：ID为空");
             throw new RuntimeException("网关实例组详情id不能为空");
         }
+
         GatewayGroupDetailDO gatewayGroupDetailDO = gatewayGroupDetailMapper.selectById(id);
         if (gatewayGroupDetailDO == null) {
+            log.warn("要删除的网关实例不存在，ID：{}", id);
             throw new RuntimeException("网关实例组详情不存在");
         }
+
         gatewayGroupDetailMapper.deleteById(id);
+        log.info("网关实例删除成功，ID：{}", id);
+
         return true;
     }
 
+    /**
+     * 获取网关实例详情
+     *
+     * @param id 要查询的网关实例ID
+     * @return 网关实例信息
+     */
     @Override
     public GroupDetailSaveReqVO get(Long id) {
+        log.info("开始获取网关实例详情，ID：{}", id);
+
         if (id == null) {
+            log.warn("获取网关实例详情失败：ID为空");
             throw new RuntimeException("网关实例组详情id不能为空");
         }
+
         GatewayGroupDetailDO gatewayGroupDetailDO = gatewayGroupDetailMapper.selectById(id);
         if (gatewayGroupDetailDO == null) {
+            log.warn("要查询的网关实例不存在，ID：{}", id);
             throw new RuntimeException("网关实例组详情不存在");
         }
+
         String key = gatewayGroupMapper.selectById(gatewayGroupDetailDO.getGroupId()).getGroupKey();
         GroupDetailSaveReqVO groupDetailSaveReqVO = new GroupDetailSaveReqVO();
         groupDetailSaveReqVO.setId(gatewayGroupDetailDO.getId());
@@ -123,60 +184,115 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         groupDetailSaveReqVO.setWeight(gatewayGroupDetailDO.getDetailWeight());
         groupDetailSaveReqVO.setStatus(gatewayGroupDetailDO.getStatus());
         groupDetailSaveReqVO.setGroupKey(key);
+
+        log.info("成功获取网关实例详情，ID：{}", id);
         return groupDetailSaveReqVO;
     }
 
+    /**
+     * 更新网关实例状态（启用/禁用）
+     *
+     * @param id 要更新的网关实例ID
+     * @return 操作结果
+     */
     @Override
     public Boolean updateStatus(Long id) {
+        log.info("开始更新网关实例状态，ID：{}", id);
+
         if (id == null) {
+            log.warn("更新网关实例状态失败：ID为空");
             throw new RuntimeException("网关实例组详情id不能为空");
         }
+
         GatewayGroupDetailDO gatewayGroupDetailDO = gatewayGroupDetailMapper.selectById(id);
         if (gatewayGroupDetailDO == null) {
+            log.warn("更新网关实例状态失败：实例不存在，ID：{}", id);
             throw new RuntimeException("网关实例组详情不存在");
         }
+
         Integer status = gatewayGroupDetailDO.getStatus();
         if (status.equals(StatusEnum.DISABLE.getValue())) {
             gatewayGroupDetailDO.setStatus(StatusEnum.ENABLE.getValue());
         } else {
             gatewayGroupDetailDO.setStatus(StatusEnum.DISABLE.getValue());
         }
+
         gatewayGroupDetailMapper.updateById(gatewayGroupDetailDO);
+        log.info("网关实例状态更新成功，ID：{}，新状态：{}", id, gatewayGroupDetailDO.getStatus());
+
         return true;
     }
 
+    /**
+     * 分页查询网关实例
+     *
+     * @param reqVO 分页查询参数
+     * @return 分页结果
+     */
     @Override
     public PageResult<GroupDetailSaveReqVO> page(GroupDetailPageReqVO reqVO) {
+        log.info("开始分页查询网关实例，分页参数：{}", reqVO);
+
         Page<GroupDetailSaveReqVO> page = new Page<>(reqVO.getPageNo(), reqVO.getPageSize());
         List<GroupDetailSaveReqVO> list = gatewayGroupDetailMapper.pageInfo(page, reqVO);
+
+        log.info("成功完成网关实例分页查询，共查询到{}条记录", list.size());
         return new PageResult<>(list, page.getTotal());
     }
 
+    /**
+     * 根据网关组Key获取服务器名称
+     *
+     * @param groupKey 网关组Key
+     * @return 服务器名称
+     */
     @Override
     public String getServerName(String groupKey) {
+        log.info("开始根据网关组Key获取服务器名称，groupKey={}", groupKey);
+
         if (StrUtil.isBlank(groupKey)) {
+            log.warn("获取服务器名称失败：groupKey为空");
             throw new RuntimeException("请选择所属网关组");
         }
-        return gatewayGroupMapper.getServerNameByGroupKey(groupKey);
+
+        String serverName = gatewayGroupMapper.getServerNameByGroupKey(groupKey);
+        log.info("成功获取服务器名称，groupKey={}，serverName={}", groupKey, serverName);
+
+        return serverName;
     }
 
+    /**
+     * 注册网关实例
+     *
+     * @param reqVO 注册请求参数
+     * @return 注册结果
+     */
     @Override
     @Transactional
     public GroupDetailRegisterRespVO register(GroupRegisterReqVO reqVO) {
+        log.info("开始注册网关实例，请求参数：{}", reqVO);
+
         Integer count = gatewayGroupDetailMapper.registerIfAbsent(reqVO.getDetailAddress());
         Long groupId = gatewayGroupMapper.getIdByKey(reqVO.getGroupKey());
+
         if (groupId == null) {
+            log.warn("注册网关实例失败：未选择所属网关组");
             throw new RuntimeException("请选择所属网关组");
         }
+
         GatewayServerDO server = gatewayServerMapper.getServerByGroupId(groupId);
+
         if (count > 0) {
             redisPubUtil.heartBeat();
+            log.info("网关实例已存在，直接返回注册信息，groupName={}", server.getServerName());
+
             return GroupDetailRegisterRespVO.builder()
                     .serverName(server.getServerName())
                     .safeKey(server.getSafeKey())
                     .safeSecret(server.getSafeSecret())
                     .build();
         }
+
         Long detailId = gatewayGroupDetailMapper.getIdByAddr(reqVO.getDetailAddress());
         GatewayGroupDetailDO detailDO = new GatewayGroupDetailDO();
         detailDO.setId(detailId == null ? uniqueIdUtil.nextId() : detailId);
@@ -185,36 +301,53 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         detailDO.setDetailAddress(reqVO.getDetailAddress());
         detailDO.setDetailWeight(reqVO.getDetailWeight());
         detailDO.setStatus(StatusEnum.ENABLE.getValue());
+
         try {
             if (detailId != null) {
                 gatewayGroupDetailMapper.updateById(detailDO);
             } else {
                 gatewayGroupDetailMapper.insert(detailDO);
             }
+
             nginxConfUtil.addInstance(reqVO.getDetailAddress(), reqVO.getDetailWeight());
             redisPubUtil.heartBeat();
+
+            log.info("网关实例注册成功，groupName={}", server.getServerName());
+
+            return GroupDetailRegisterRespVO.builder()
+                    .serverName(server.getServerName())
+                    .safeKey(server.getSafeKey())
+                    .safeSecret(server.getSafeSecret())
+                    .build();
         } catch (Exception e) {
+            log.error("注册创建失败，错误信息：{}", e.getMessage(), e);
             throw new RuntimeException("注册创建失败");
         }
-        return GroupDetailRegisterRespVO.builder()
-                .serverName(server.getServerName())
-                .safeKey(server.getSafeKey())
-                .safeSecret(server.getSafeSecret())
-                .build();
     }
 
+    /**
+     * 心跳检测（保活机制）
+     *
+     * @param reqVO 心跳请求参数
+     * @return 服务器名称
+     */
     @Override
     public String keepAlive(HeartBeatReqVO reqVO) {
+        log.info("收到网关实例心跳请求，请求参数：{}", reqVO);
+
         String key = reqVO.getGroupKey();
         String server = getServerName(key);
+
         Map<Object, Object> entries = redisTemplate.opsForHash()
                 .entries("heartbeat:group:" + server + ":" + reqVO.getAddr());
+
         if (entries.isEmpty()) {
             HashMap<String, Object> map = new HashMap<>();
             map.put("lastTime", LocalDateTime.now().toString());
             map.put("startTime", LocalDateTime.now().toString());
             map.put("url", reqVO.getAddr());
             map.put("weight", reqVO.getWeight());
+
             redisTemplate.opsForHash().putAll("heartbeat:group:" + server + ":" + reqVO.getAddr(), map);
             redisTemplate.expire("heartbeat:group:" + server + ":" + reqVO.getAddr(), 30, TimeUnit.SECONDS);
             return server;
@@ -224,7 +357,3 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         return server;
     }
 }
-
-
-
-

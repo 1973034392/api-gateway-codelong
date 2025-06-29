@@ -7,7 +7,7 @@ import top.codelong.apigatewaycenter.dto.req.ServerPageReqVO;
 import top.codelong.apigatewaycenter.dto.req.ServerSaveReqVO;
 
 /**
- * @author Administrator
+ * @author CodeLong
  * @description 针对表【gateway_server(网关系统表)】的数据库操作Service
  * @createDate 2025-05-23 16:05:44
  */

@@ -9,7 +9,7 @@ import top.codelong.apigatewaycenter.dto.req.ServerSaveReqVO;
 import java.util.List;
 
 /**
- * @author Administrator
+ * @author CodeLong
  * @description 针对表【gateway_server(网关系统表)】的数据库操作Mapper
  * @createDate 2025-05-23 16:05:44
  * @Entity top.codelong.apigatewaycenter.dao.entity.GatewayServerDO

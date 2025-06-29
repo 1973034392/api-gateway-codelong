@@ -4,6 +4,9 @@ import com.alibaba.fastjson.JSON;
 import io.netty.handler.codec.http.*;
 import top.codelong.apigatewaycore.common.result.Result;
 
+/**
+ * 请求结果处理工具类
+ */
 public class RequestResultUtil {
     public static DefaultFullHttpResponse parse(Result result) {
         // 返回信息处理

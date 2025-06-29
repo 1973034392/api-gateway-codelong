@@ -6,6 +6,10 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 import top.codelong.apigatewaycore.socket.handlers.ResultHandler;
 
+/**
+ * 抽象基础处理器
+ * @param <T>
+ */
 public abstract class BaseHandler<T> extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

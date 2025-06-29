@@ -3,6 +3,9 @@ package top.codelong.apigatewaycenter.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * 状态枚举
+ */
 @Getter
 @AllArgsConstructor
 public enum StatusEnum {

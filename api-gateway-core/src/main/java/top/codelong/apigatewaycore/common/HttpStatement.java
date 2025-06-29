@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import top.codelong.apigatewaycore.enums.HTTPTypeEnum;
 
+/**
+ * http请求信息
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

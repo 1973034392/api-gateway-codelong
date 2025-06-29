@@ -6,6 +6,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycenter.utils.NginxConfUtil;
 
+/**
+ * nginx配置文件定时刷新
+ */
 @Slf4j
 @Component
 public class NginxFlushScheduled {

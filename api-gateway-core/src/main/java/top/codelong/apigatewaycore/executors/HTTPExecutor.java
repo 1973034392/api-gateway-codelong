@@ -15,29 +15,54 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+/**
+ * HTTP请求执行器
+ * 负责执行各种类型的HTTP请求(GET/POST/PUT/DELETE)
+ */
 @Slf4j
 public class HTTPExecutor implements BaseExecutor {
+    // 目标URL
     private final String url;
+    // HTTP请求声明
     private final HttpStatement httpStatement;
-    private final CloseableHttpClient CloseableHttpClient;
+    // HTTP客户端
+    private final CloseableHttpClient closeableHttpClient;
 
-    public HTTPExecutor(String url, HttpStatement httpStatement, CloseableHttpClient CloseableHttpClient) {
+    /**
+     * 构造函数
+     *
+     * @param url                 目标URL
+     * @param httpStatement       HTTP请求声明
+     * @param closeableHttpClient HTTP客户端实例
+     */
+    public HTTPExecutor(String url, HttpStatement httpStatement, CloseableHttpClient closeableHttpClient) {
         this.url = url;
         this.httpStatement = httpStatement;
-        this.CloseableHttpClient = CloseableHttpClient;
+        this.closeableHttpClient = closeableHttpClient;
+        log.debug("初始化HTTP执行器，URL: {}, 方法类型: {}", url, httpStatement.getHttpType());
     }
 
+    /**
+     * 执行HTTP请求
+     *
+     * @param parameter 请求参数
+     * @return 执行结果
+     */
     @Override
     public Result execute(Map<String, Object> parameter) {
         HTTPTypeEnum httpType = httpStatement.getHttpType();
         HttpUriRequest httpRequest = null;
         String requestUrl = url;
+
         try {
-            // 创建请求对象
+            log.debug("准备执行{}请求，URL: {}, 参数: {}", httpType, url, parameter);
+
+            // 根据请求类型创建不同的请求对象
             switch (httpType) {
                 case GET:
                     if (parameter != null && !parameter.isEmpty()) {
                         requestUrl = buildGetRequestUrl(url, parameter);
+                        log.debug("构建GET请求URL: {}", requestUrl);
                     }
                     httpRequest = new HttpGet(requestUrl);
                     break;
@@ -46,6 +71,7 @@ public class HTTPExecutor implements BaseExecutor {
                     if (parameter != null) {
                         String jsonBody = JSON.toJSONString(parameter);
                         postRequest.setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
+                        log.trace("POST请求体: {}", jsonBody);
                     }
                     httpRequest = postRequest;
                     break;
@@ -54,6 +80,7 @@ public class HTTPExecutor implements BaseExecutor {
                     if (parameter != null) {
                         String jsonBody = JSON.toJSONString(parameter);
                         putRequest.setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
+                        log.trace("PUT请求体: {}", jsonBody);
                     }
                     httpRequest = putRequest;
                     break;
@@ -61,31 +88,44 @@ public class HTTPExecutor implements BaseExecutor {
                     httpRequest = new HttpDelete(requestUrl);
                     break;
                 default:
-                    log.error("请求失败: {}", url);
+                    log.error("不支持的HTTP请求类型: {}", httpType);
+                    return Result.error("不支持的HTTP请求类型: " + httpType);
             }
 
-            // 执行请求并获取响应
-            try (CloseableHttpResponse response = CloseableHttpClient.execute(httpRequest)) {
+            // 执行请求并处理响应
+            try (CloseableHttpResponse response = closeableHttpClient.execute(httpRequest)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
 
-                // 返回响应结果
+                log.debug("HTTP请求完成，状态码: {}, 响应体长度: {}", statusCode, responseBody.length());
+                log.trace("完整响应体: {}", responseBody);
+
                 return new Result<>(statusCode, "", responseBody);
             }
         } catch (Exception e) {
+            log.error("HTTP请求执行失败，URL: {}, 错误: {}", requestUrl, e.getMessage(), e);
             return Result.error("请求失败: " + e.getMessage());
         }
     }
 
-    // 构建带有参数的 GET 请求 URL
+    /**
+     * 构建带参数的GET请求URL
+     *
+     * @param baseUrl 基础URL
+     * @param params  参数Map
+     * @return 构建完成的URL
+     */
     private String buildGetRequestUrl(String baseUrl, Map<String, Object> params) {
         StringBuilder urlBuilder = new StringBuilder(baseUrl);
         if (params != null && !params.isEmpty()) {
             urlBuilder.append("?");
             for (Map.Entry<String, Object> entry : params.entrySet()) {
-                urlBuilder.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8)).append("&");
+                urlBuilder.append(entry.getKey())
+                        .append("=")
+                        .append(URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8))
+                        .append("&");
             }
-            urlBuilder.deleteCharAt(urlBuilder.length() - 1); // 移除末尾的 &
+            urlBuilder.deleteCharAt(urlBuilder.length() - 1); // 移除末尾的&
         }
         return urlBuilder.toString();
     }

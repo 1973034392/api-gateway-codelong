@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycore.common.HttpStatement;
 import top.codelong.apigatewaycore.common.result.Result;
 
+/**
+ * 测试自定义后置处理器
+ */
 @Component
 @Slf4j
 @Order(1)

@@ -4,6 +4,9 @@ import org.apache.dubbo.config.ApplicationConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * dubbo 配置
+ */
 @Configuration
 public class DubboConfig {
     @Bean

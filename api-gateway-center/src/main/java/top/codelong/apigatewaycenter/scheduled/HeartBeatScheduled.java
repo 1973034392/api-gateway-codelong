@@ -5,6 +5,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycenter.utils.RedisPubUtil;
 
+/**
+ * 心跳定时任务
+ */
 @Component
 public class HeartBeatScheduled {
     @Resource

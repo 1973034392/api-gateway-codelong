@@ -4,6 +4,9 @@ import top.codelong.findsdk.enums.HttpTypeEnum;
 
 import java.lang.annotation.*;
 
+/**
+ * 自定义方法注解
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})

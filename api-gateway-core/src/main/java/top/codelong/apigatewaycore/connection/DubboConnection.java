@@ -8,6 +8,9 @@ import top.codelong.apigatewaycore.executors.DubboExecutor;
 
 import java.util.Map;
 
+/**
+ * dubbo连接
+ */
 public class DubboConnection implements BaseConnection {
     private final BaseExecutor executor;
 

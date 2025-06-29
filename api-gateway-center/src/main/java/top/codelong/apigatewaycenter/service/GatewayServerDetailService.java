@@ -6,7 +6,7 @@ import top.codelong.apigatewaycenter.dto.req.HeartBeatReqVO;
 import top.codelong.apigatewaycenter.dto.req.ServerDetailRegisterReqVO;
 
 /**
-* @author Administrator
+* @author CodeLong
 * @description 针对表【gateway_server_detail(系统详细信息表)】的数据库操作Service
 * @createDate 2025-05-23 16:05:44
 */

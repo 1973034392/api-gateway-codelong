@@ -1,5 +1,8 @@
 package top.codelong.findsdk.vo;
 
+/**
+ * 接口方法信息
+ */
 public class MethodSaveDomain {
 
     private String methodName;

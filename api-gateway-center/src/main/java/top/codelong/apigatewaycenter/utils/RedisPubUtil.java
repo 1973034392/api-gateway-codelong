@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * Redis发布工具类
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

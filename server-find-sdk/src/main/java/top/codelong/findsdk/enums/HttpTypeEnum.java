@@ -1,5 +1,8 @@
 package top.codelong.findsdk.enums;
 
+/**
+ * http请求方式枚举
+ */
 public enum HttpTypeEnum {
     GET("GET"),
     POST("POST"),

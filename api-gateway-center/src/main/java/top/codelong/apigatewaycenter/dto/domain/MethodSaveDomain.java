@@ -3,6 +3,9 @@ package top.codelong.apigatewaycenter.dto.domain;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+/**
+ * 接口方法信息实体对象
+ */
 @Data
 @Schema(description = "接口方法信息")
 public class MethodSaveDomain {
