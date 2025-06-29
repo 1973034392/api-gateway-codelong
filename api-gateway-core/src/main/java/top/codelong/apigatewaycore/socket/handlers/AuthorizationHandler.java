@@ -46,7 +46,7 @@ public class AuthorizationHandler extends BaseHandler<FullHttpRequest> {
             String uri = RequestParameterUtil.getUrl(request);
             log.trace("解析请求URI: {}", uri);
 
-            // 从缓存获取接口声明
+            // 获取接口声明
             statement = interfaceCacheUtil.getStatement(uri);
             if (statement == null) {
                 log.warn("接口不存在，URI: {}", uri);

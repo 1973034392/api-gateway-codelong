@@ -6,7 +6,7 @@ import top.codelong.apigatewaycore.common.HttpStatement;
 import top.codelong.apigatewaycore.common.result.Result;
 
 /**
- * 自定义前置处理器接口
+ * 自定义后置处理器接口
  */
 public interface CustomPostHandler extends Ordered {
     Result handle(HttpStatement httpStatement, FullHttpRequest request);
