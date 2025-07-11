@@ -4,7 +4,7 @@ import org.apache.dubbo.rpc.service.GenericService;
 import top.codelong.apigatewaycore.common.HttpStatement;
 import top.codelong.apigatewaycore.common.result.Result;
 import top.codelong.apigatewaycore.executors.BaseExecutor;
-import top.codelong.apigatewaycore.executors.DubboExecutor;
+import top.codelong.apigatewaycore.executors.dubbo.DubboExecutorSpiFinder;
 
 import java.util.Map;
 
@@ -14,12 +14,12 @@ import java.util.Map;
 public class DubboConnection implements BaseConnection {
     private final BaseExecutor executor;
 
-    public DubboConnection(String url, HttpStatement httpStatement, Map<String, GenericService> dubboServiceMap) {
-        this.executor = new DubboExecutor(url, httpStatement, dubboServiceMap);
+    public DubboConnection(Map<String, GenericService> dubboServiceMap) {
+        this.executor = DubboExecutorSpiFinder.getInstance(dubboServiceMap);
     }
 
     @Override
-    public Result send(Map<String, Object> parameter) {
-        return executor.execute(parameter);
+    public Result send(Map<String, Object> parameter, String url, HttpStatement httpStatement) {
+        return executor.execute(parameter, url, httpStatement);
     }
 }

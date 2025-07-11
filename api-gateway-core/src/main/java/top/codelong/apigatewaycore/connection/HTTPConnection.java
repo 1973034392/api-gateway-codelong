@@ -4,7 +4,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import top.codelong.apigatewaycore.common.HttpStatement;
 import top.codelong.apigatewaycore.common.result.Result;
 import top.codelong.apigatewaycore.executors.BaseExecutor;
-import top.codelong.apigatewaycore.executors.HTTPExecutor;
+import top.codelong.apigatewaycore.executors.http.HTTPExecutorSpiFinder;
 
 import java.util.Map;
 
@@ -14,12 +14,12 @@ import java.util.Map;
 public class HTTPConnection implements BaseConnection {
     private final BaseExecutor executor;
 
-    public HTTPConnection(String url, HttpStatement httpStatement, CloseableHttpClient CloseableHttpClient) {
-        this.executor = new HTTPExecutor(url, httpStatement, CloseableHttpClient);
+    public HTTPConnection(CloseableHttpClient CloseableHttpClient) {
+        this.executor = HTTPExecutorSpiFinder.getInstance(CloseableHttpClient);
     }
 
     @Override
-    public Result send(Map<String, Object> parameter) {
-        return executor.execute(parameter);
+    public Result send(Map<String, Object> parameter, String url, HttpStatement httpStatement) {
+        return executor.execute(parameter, url, httpStatement);
     }
 }

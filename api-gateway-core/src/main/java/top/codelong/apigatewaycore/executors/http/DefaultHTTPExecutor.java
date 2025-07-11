@@ -1,4 +1,4 @@
-package top.codelong.apigatewaycore.executors;
+package top.codelong.apigatewaycore.executors.http;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
@@ -20,26 +20,20 @@ import java.util.Map;
  * 负责执行各种类型的HTTP请求(GET/POST/PUT/DELETE)
  */
 @Slf4j
-public class HTTPExecutor implements BaseExecutor {
-    // 目标URL
-    private final String url;
-    // HTTP请求声明
-    private final HttpStatement httpStatement;
-    // HTTP客户端
-    private final CloseableHttpClient closeableHttpClient;
+public class DefaultHTTPExecutor implements HTTPExecutor {
+    private volatile CloseableHttpClient closeableHttpClient;
 
-    /**
-     * 构造函数
-     *
-     * @param url                 目标URL
-     * @param httpStatement       HTTP请求声明
-     * @param closeableHttpClient HTTP客户端实例
-     */
-    public HTTPExecutor(String url, HttpStatement httpStatement, CloseableHttpClient closeableHttpClient) {
-        this.url = url;
-        this.httpStatement = httpStatement;
-        this.closeableHttpClient = closeableHttpClient;
-        log.debug("初始化HTTP执行器，URL: {}, 方法类型: {}", url, httpStatement.getHttpType());
+    public void setClient(CloseableHttpClient client) {
+        if (this.closeableHttpClient == null) {
+            synchronized (DefaultHTTPExecutor.class) {
+                if (this.closeableHttpClient == null) {
+                    try {
+                        this.closeableHttpClient = client;
+                    } catch (Exception ignore) {
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -49,9 +43,9 @@ public class HTTPExecutor implements BaseExecutor {
      * @return 执行结果
      */
     @Override
-    public Result execute(Map<String, Object> parameter) {
+    public Result execute(Map<String, Object> parameter, String url, HttpStatement httpStatement) {
         HTTPTypeEnum httpType = httpStatement.getHttpType();
-        HttpUriRequest httpRequest = null;
+        HttpUriRequest httpRequest;
         String requestUrl = url;
 
         try {

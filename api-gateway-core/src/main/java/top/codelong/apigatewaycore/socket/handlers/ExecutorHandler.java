@@ -72,15 +72,15 @@ public class ExecutorHandler extends BaseHandler<FullHttpRequest> {
             if (httpStatement.getIsHttp()) {
                 url = "http://" + serverAddr + url;
                 log.debug("创建HTTP连接，完整URL: {}", url);
-                connection = new HTTPConnection(url, httpStatement, config.getHttpClient());
+                connection = new HTTPConnection(config.getHttpClient());
             } else {
                 url = serverAddr.split(":")[0] + ":20880";
                 log.debug("创建Dubbo连接，服务地址: {}", url);
-                connection = new DubboConnection(url, httpStatement, config.getDubboServiceMap());
+                connection = new DubboConnection(config.getDubboServiceMap());
             }
 
             // 执行请求
-            Result data = connection.send(parameters);
+            Result data = connection.send(parameters, url, httpStatement);
             log.debug("请求执行成功，结果状态码: {}", data.getCode());
 
             // 将结果存入Channel属性
