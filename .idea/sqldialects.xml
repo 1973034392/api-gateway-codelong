@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$USER_HOME$/Desktop/网关架构设计/表结构设计/表结构设计.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/docs/表结构设计/表结构设计.sql" dialect="MySQL" />
   </component>
 </project>

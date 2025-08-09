@@ -98,7 +98,7 @@ public class GlobalConfiguration {
     @PostConstruct
     public void init() {
         log.info("开始初始化全局配置");
-        this.httpStatementMap = CacheUtil.newLRUCache(maxCache);
+        this.httpStatementMap = CacheUtil.newLFUCache(maxCache);
         log.debug("创建HTTP声明缓存，容量: {}", maxCache);
 
         this.serverName = register();
