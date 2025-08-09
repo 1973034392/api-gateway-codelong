@@ -44,7 +44,7 @@ public class Result<T> implements Serializable {
         Result<T> result = new Result<>();
         result.data = null;
         result.msg = "";
-        result.code = 1;
+        result.code = 200;
         return result;
     }
 
@@ -59,7 +59,7 @@ public class Result<T> implements Serializable {
         Result<T> result = new Result<>();
         result.data = object;
         result.msg = "";
-        result.code = 1;
+        result.code = 200;
         return result;
     }
 

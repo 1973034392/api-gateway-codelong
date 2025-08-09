@@ -95,9 +95,9 @@ public class ExecutorHandler extends BaseHandler<FullHttpRequest> {
                             return; // 结束处理
                         }
 
-                        // 调用成功，将结果放入Channel属性，并传递给下一个处理器
-                        channel.attr(AttributeKey.valueOf("data")).set(result);
-                        ctx.fireChannelRead(request);
+                        // 调用成功
+                        DefaultFullHttpResponse response = RequestResultUtil.parse(result);
+                        channel.writeAndFlush(response);
                     } finally {
                         request.release();
                     }
