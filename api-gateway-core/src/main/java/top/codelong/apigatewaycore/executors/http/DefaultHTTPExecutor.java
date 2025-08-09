@@ -2,10 +2,15 @@ package top.codelong.apigatewaycore.executors.http;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.async.methods.SimpleBody;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestBuilder;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import top.codelong.apigatewaycore.common.HttpStatement;
 import top.codelong.apigatewaycore.common.result.Result;
@@ -14,6 +19,7 @@ import top.codelong.apigatewaycore.enums.HTTPTypeEnum;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * HTTP请求执行器
@@ -21,36 +27,33 @@ import java.util.Map;
  */
 @Slf4j
 public class DefaultHTTPExecutor implements HTTPExecutor {
-    private volatile CloseableHttpClient closeableHttpClient;
+    private volatile CloseableHttpAsyncClient asyncHttpClient;
 
-    public void setClient(CloseableHttpClient client) {
-        if (this.closeableHttpClient == null) {
+    public void setClient(CloseableHttpAsyncClient asyncClient) {
+        if (this.asyncHttpClient == null) {
             synchronized (DefaultHTTPExecutor.class) {
-                if (this.closeableHttpClient == null) {
-                    try {
-                        this.closeableHttpClient = client;
-                    } catch (Exception ignore) {
-                    }
+                if (this.asyncHttpClient == null) {
+                    this.asyncHttpClient = asyncClient;
                 }
             }
         }
     }
 
     /**
-     * 执行HTTP请求
+     * 异步执行HTTP请求
      *
      * @param parameter 请求参数
-     * @return 执行结果
+     * @return 包含执行结果的CompletableFuture
      */
     @Override
-    public Result execute(Map<String, Object> parameter, String url, HttpStatement httpStatement) {
+    public CompletableFuture<Result> execute(Map<String, Object> parameter, String url, HttpStatement httpStatement) {
         HTTPTypeEnum httpType = httpStatement.getHttpType();
-        HttpUriRequest httpRequest;
         String requestUrl = url;
+        CompletableFuture<Result> future = new CompletableFuture<>();
 
         try {
             log.debug("准备执行{}请求，URL: {}, 参数: {}", httpType, url, parameter);
-
+            SimpleRequestBuilder requestBuilder;
             // 根据请求类型创建不同的请求对象
             switch (httpType) {
                 case GET:
@@ -58,48 +61,64 @@ public class DefaultHTTPExecutor implements HTTPExecutor {
                         requestUrl = buildGetRequestUrl(url, parameter);
                         log.debug("构建GET请求URL: {}", requestUrl);
                     }
-                    httpRequest = new HttpGet(requestUrl);
+                    requestBuilder = SimpleRequestBuilder.get(requestUrl);
                     break;
                 case POST:
-                    HttpPost postRequest = new HttpPost(requestUrl);
+                    requestBuilder = SimpleRequestBuilder.post(requestUrl);
                     if (parameter != null) {
                         String jsonBody = JSON.toJSONString(parameter);
-                        postRequest.setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
-                        log.trace("POST请求体: {}", jsonBody);
+                        requestBuilder = SimpleRequestBuilder.post(requestUrl).setUri(requestUrl)
+                                .setBody(jsonBody, org.apache.hc.core5.http.ContentType.APPLICATION_JSON);
                     }
-                    httpRequest = postRequest;
                     break;
                 case PUT:
-                    HttpPut putRequest = new HttpPut(requestUrl);
+                    requestBuilder = SimpleRequestBuilder.put(requestUrl);
                     if (parameter != null) {
                         String jsonBody = JSON.toJSONString(parameter);
-                        putRequest.setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
-                        log.trace("PUT请求体: {}", jsonBody);
+                        requestBuilder = SimpleRequestBuilder.post(requestUrl).setUri(requestUrl)
+                                .setBody(jsonBody, org.apache.hc.core5.http.ContentType.APPLICATION_JSON);
                     }
-                    httpRequest = putRequest;
                     break;
                 case DELETE:
-                    httpRequest = new HttpDelete(requestUrl);
+                    requestBuilder = SimpleRequestBuilder.delete().setUri(requestUrl);
                     break;
                 default:
                     log.error("不支持的HTTP请求类型: {}", httpType);
-                    return Result.error("不支持的HTTP请求类型: " + httpType);
+                    future.completeExceptionally(new IllegalArgumentException("不支持的HTTP请求类型: " + httpType));
+                    return future;
             }
 
-            // 执行请求并处理响应
-            try (CloseableHttpResponse response = closeableHttpClient.execute(httpRequest)) {
-                int statusCode = response.getStatusLine().getStatusCode();
-                String responseBody = EntityUtils.toString(response.getEntity(), "UTF-8");
+            SimpleHttpRequest httpRequest = requestBuilder.build();
+            asyncHttpClient.execute(httpRequest, new FutureCallback<>() {
+                @Override
+                public void completed(SimpleHttpResponse response) {
+                    try {
+                        int statusCode = response.getCode();
+                        String responseBody = response.getBodyText();
+                        log.debug("异步HTTP请求完成，状态码: {}", statusCode);
+                        future.complete(new Result<>(statusCode, "", responseBody));
+                    } catch (Exception e) {
+                        failed(e);
+                    }
+                }
 
-                log.debug("HTTP请求完成，状态码: {}, 响应体长度: {}", statusCode, responseBody.length());
-                log.trace("完整响应体: {}", responseBody);
+                @Override
+                public void failed(Exception ex) {
+                    log.error("异步HTTP请求执行失败，错误: {}", ex.getMessage(), ex);
+                    future.complete(Result.error("请求失败: " + ex.getMessage()));
+                }
 
-                return new Result<>(statusCode, "", responseBody);
-            }
+                @Override
+                public void cancelled() {
+                    log.warn("异步HTTP请求被取消");
+                    future.cancel(true);
+                }
+            });
         } catch (Exception e) {
-            log.error("HTTP请求执行失败，URL: {}, 错误: {}", requestUrl, e.getMessage(), e);
-            return Result.error("请求失败: " + e.getMessage());
+            log.error("构建异步HTTP请求时出错", e);
+            future.completeExceptionally(e);
         }
+        return future;
     }
 
     /**

@@ -69,6 +69,8 @@ public class RedisConfig {
         // 添加消息监听器
         container.addMessageListener(listener, new ChannelTopic("heartBeat"));
         log.info("添加消息监听器到heartBeat频道");
+        container.addMessageListener(listener, new ChannelTopic("service-launched"));
+        log.info("添加消息监听器到server频道");
 
         return container;
     }

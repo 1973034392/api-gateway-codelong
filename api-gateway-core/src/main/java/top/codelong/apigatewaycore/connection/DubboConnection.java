@@ -7,6 +7,7 @@ import top.codelong.apigatewaycore.executors.BaseExecutor;
 import top.codelong.apigatewaycore.executors.dubbo.DubboExecutorSpiFinder;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * dubbo连接
@@ -19,7 +20,7 @@ public class DubboConnection implements BaseConnection {
     }
 
     @Override
-    public Result send(Map<String, Object> parameter, String url, HttpStatement httpStatement) {
+    public CompletableFuture<Result> send(Map<String, Object> parameter, String url, HttpStatement httpStatement) {
         return executor.execute(parameter, url, httpStatement);
     }
 }

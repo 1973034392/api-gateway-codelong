@@ -1,6 +1,6 @@
 package top.codelong.apigatewaycore.executors.http;
 
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import top.codelong.apigatewaycore.executors.BaseExecutor;
 
 import java.lang.reflect.Constructor;
@@ -9,7 +9,7 @@ import java.util.ServiceLoader;
 public abstract class HTTPExecutorSpiFinder implements BaseExecutor {
     private static volatile HTTPExecutor executor;
 
-    public static HTTPExecutor getInstance(CloseableHttpClient client) {
+    public static HTTPExecutor getInstance(CloseableHttpAsyncClient client) {
         if (executor == null) { // 第一次检查（非同步）
             synchronized (HTTPExecutorSpiFinder.class) {
                 if (executor == null) { // 第二次检查（同步）

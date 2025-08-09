@@ -21,6 +21,7 @@ import top.codelong.apigatewaycore.utils.RequestParameterUtil;
 import top.codelong.apigatewaycore.utils.RequestResultUtil;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 执行器处理器
@@ -63,6 +64,7 @@ public class ExecutorHandler extends BaseHandler<FullHttpRequest> {
         BaseConnection connection;
         String url = RequestParameterUtil.getUrl(request);
 
+        request.retain();
         try {
             // 获取服务地址
             String serverAddr = gatewayServer.getOne();
@@ -72,27 +74,41 @@ public class ExecutorHandler extends BaseHandler<FullHttpRequest> {
             if (httpStatement.getIsHttp()) {
                 url = "http://" + serverAddr + url;
                 log.debug("创建HTTP连接，完整URL: {}", url);
-                connection = new HTTPConnection(config.getHttpClient());
+                connection = new HTTPConnection(config.getAsyncHttpClient());
             } else {
                 url = serverAddr.split(":")[0] + ":20880";
                 log.debug("创建Dubbo连接，服务地址: {}", url);
                 connection = new DubboConnection(config.getDubboServiceMap());
             }
 
-            // 执行请求
-            Result data = connection.send(parameters, url, httpStatement);
-            log.debug("请求执行成功，结果状态码: {}", data.getCode());
+            // 发起异步调用
+            CompletableFuture<Result> future = connection.send(parameters, url, httpStatement);
 
-            // 将结果存入Channel属性
-            channel.attr(AttributeKey.valueOf("data")).set(data);
+            // 处理异步结果
+            future.whenComplete((result, throwable) -> {
+                ctx.executor().execute(() -> {
+                    try {
+                        if (throwable != null) {
+                            log.error("服务异步调用失败, URI: {}", request.uri(), throwable);
+                            DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error("服务调用失败: " + throwable.getMessage()));
+                            channel.writeAndFlush(response);
+                            return; // 结束处理
+                        }
+
+                        // 调用成功，将结果放入Channel属性，并传递给下一个处理器
+                        channel.attr(AttributeKey.valueOf("data")).set(result);
+                        ctx.fireChannelRead(request);
+                    } finally {
+                        request.release();
+                    }
+                });
+            });
+
         } catch (Exception e) {
             log.error("服务调用失败，URI: {}, 错误: {}", request.uri(), e.getMessage(), e);
             DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error("服务调用失败"));
             channel.writeAndFlush(response);
-            return;
+            request.release();
         }
-
-        // 传递给下一个处理器
-        ctx.fireChannelRead(request);
     }
 }
