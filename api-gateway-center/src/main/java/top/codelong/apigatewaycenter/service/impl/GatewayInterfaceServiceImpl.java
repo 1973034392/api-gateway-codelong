@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 
 /**
  * 网关接口服务实现类
+ *
  * @author CodeLong
  * @description 针对表【gateway_interface(接口信息表)】的数据库操作Service实现
  * @createDate 2025-05-23 16:05:44
@@ -50,6 +51,7 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
 
     /**
      * 创建接口及其方法
+     *
      * @param reqVO 接口方法保存请求VO
      * @return 创建的接口ID
      * @throws RuntimeException 当服务不存在/已下线/安全密钥错误/方法参数为空时抛出
@@ -140,9 +142,10 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
 
     /**
      * 注册方法到Redis缓存
-     * @param serverName 服务名称
+     *
+     * @param serverName    服务名称
      * @param interfaceName 接口名称
-     * @param methods 方法列表
+     * @param methods       方法列表
      */
     private void registerMethod(String serverName, String interfaceName, List<MethodSaveDomain> methods) {
         log.debug("开始注册方法到Redis，serverName: {}, interfaceName: {}", serverName, interfaceName);
@@ -163,7 +166,8 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
 
     /**
      * 注册服务到Redis缓存
-     * @param reqVO 接口方法保存请求VO
+     *
+     * @param reqVO    接口方法保存请求VO
      * @param serverId 服务ID
      */
     private void registerService(InterfaceMethodSaveReqVO reqVO, Long serverId) {

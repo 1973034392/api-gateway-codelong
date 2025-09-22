@@ -19,7 +19,7 @@ public class TestServiceImpl implements TestService {
         return "1  " + name;
     }
 
-    @ApiMethod(isAuth = 1, isHttp = 1, httpType = HttpTypeEnum.GET, url = "/test2")
+    @ApiMethod(isHttp = 1, httpType = HttpTypeEnum.GET, url = "/test2")
     public String test2(String name) {
         return "2  " + name;
     }
