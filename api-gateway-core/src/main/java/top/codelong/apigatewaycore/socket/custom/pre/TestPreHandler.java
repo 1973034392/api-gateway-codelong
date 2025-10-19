@@ -17,7 +17,7 @@ import top.codelong.apigatewaycore.socket.custom.post.CustomPostHandler;
 public class TestPreHandler implements CustomPreHandler {
     @Override
     public Result handle(HttpStatement httpStatement, FullHttpRequest request) {
-        log.info("======TestPreHandler======");
+//        log.info("======TestPreHandler======");
         return null;
     }
 

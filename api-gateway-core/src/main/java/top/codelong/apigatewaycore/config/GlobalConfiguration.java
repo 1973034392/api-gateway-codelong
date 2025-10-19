@@ -95,6 +95,15 @@ public class GlobalConfiguration {
     @Resource
     private Environment environment;
 
+    public GlobalConfiguration() {
+        // 设置默认值
+        this.nettyPort = 8888;
+        this.weight = 1;
+        this.maxCache = 1000;
+        this.bossThreads = 1;
+        this.workerThreads = 4;
+    }
+
     /**
      * 初始化方法
      */

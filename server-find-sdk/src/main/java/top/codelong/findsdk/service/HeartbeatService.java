@@ -68,9 +68,7 @@ public class HeartbeatService {
         request.body(JSON.toJSONString(param));
 
         try {
-            logger.debug("正在发送心跳请求...");
             HttpResponse response = request.execute();
-            logger.info("心跳维持成功，响应结果: {}", response.body());
         } catch (Exception e) {
             logger.error("心跳维持失败", e);
         }

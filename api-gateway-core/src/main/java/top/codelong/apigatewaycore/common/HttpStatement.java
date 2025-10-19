@@ -20,4 +20,10 @@ public class HttpStatement {
     private Boolean isAuth;
     private Boolean isHttp;
     private HTTPTypeEnum httpType;
+    private String serviceId;
+
+    public String getServiceId() {
+        // 如果 serviceId 为空，使用接口名作为服务ID
+        return serviceId != null ? serviceId : interfaceName;
+    }
 }

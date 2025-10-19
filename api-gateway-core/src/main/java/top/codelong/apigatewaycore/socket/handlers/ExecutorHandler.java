@@ -3,7 +3,6 @@ package top.codelong.apigatewaycore.socket.handlers;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.util.AttributeKey;
 import jakarta.annotation.Resource;
@@ -21,7 +20,7 @@ import top.codelong.apigatewaycore.utils.RequestParameterUtil;
 import top.codelong.apigatewaycore.utils.RequestResultUtil;
 
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 /**
  * 执行器处理器
@@ -31,84 +30,101 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @ChannelHandler.Sharable
 public class ExecutorHandler extends BaseHandler<FullHttpRequest> {
+    private static final AttributeKey<HttpStatement> HTTP_STATEMENT_KEY = AttributeKey.valueOf("HttpStatement");
+
+    // 创建自定义线程池，用于处理请求
+    private final ExecutorService executorService = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors() * 2,
+            Runtime.getRuntime().availableProcessors() * 4,
+            60L, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(1000),
+            new ThreadPoolExecutor.CallerRunsPolicy()
+    );
+
+    // 服务级别的超时配置缓存
+    private final ConcurrentHashMap<String, Integer> serviceTimeoutCache = new ConcurrentHashMap<>();
+
+    // 默认超时时间（15秒）
+    private static final int DEFAULT_TIMEOUT = 15000;
+
     @Resource
     private GlobalConfiguration config;
     @Resource
     private GatewayServer gatewayServer;
 
-    /**
-     * 处理请求执行
-     *
-     * @param ctx     ChannelHandler上下文
-     * @param channel 当前Channel
-     * @param request HTTP请求
-     */
     @Override
     protected void handle(ChannelHandlerContext ctx, Channel channel, FullHttpRequest request) {
-        // 从Channel属性获取HttpStatement
-        HttpStatement httpStatement = (HttpStatement) channel.attr(AttributeKey.valueOf("HttpStatement")).get();
-        log.debug("开始处理请求执行，URI: {}, 类型: {}", request.uri(),
-                httpStatement.getIsHttp() ? "HTTP" : "Dubbo");
-
-        // 获取请求参数
-        Map<String, Object> parameters;
-        try {
-            parameters = RequestParameterUtil.getParameters(request);
-        } catch (Exception e) {
-            DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error(e.getMessage()));
-            channel.writeAndFlush(response);
+        HttpStatement httpStatement = channel.attr(HTTP_STATEMENT_KEY).get();
+        if (httpStatement == null) {
+            sendError(channel, "系统处理异常");
             return;
         }
-        log.trace("请求参数: {}", parameters);
 
-        BaseConnection connection;
-        String url = RequestParameterUtil.getUrl(request);
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                Map<String, Object> parameters = RequestParameterUtil.getParameters(request);
+                String url = RequestParameterUtil.getUrl(request);
 
-        request.retain();
-        try {
-            // 获取服务地址
-            String serverAddr = gatewayServer.getOne();
-            log.debug("获取到服务地址: {}", serverAddr);
+                // 添加URL有效性检查
+                if (url == null || url.trim().isEmpty()) {
+                    throw new IllegalArgumentException("请求URL不能为空");
+                }
 
-            // 根据请求类型创建连接
-            if (httpStatement.getIsHttp()) {
-                url = "http://" + serverAddr + url;
-                log.debug("创建HTTP连接，完整URL: {}", url);
-                connection = new HTTPConnection(config.getAsyncHttpClient());
-            } else {
-                url = serverAddr.split(":")[0] + ":20880";
-                log.debug("创建Dubbo连接，服务地址: {}", url);
-                connection = new DubboConnection(config.getDubboServiceMap());
+                String serverAddr = gatewayServer.getOne();
+
+                // 获取服务特定的超时时间
+                int timeout = serviceTimeoutCache.computeIfAbsent(
+                        httpStatement.getServiceId(),
+                        key -> DEFAULT_TIMEOUT
+                );
+
+                BaseConnection connection = createConnection(httpStatement.getIsHttp(), serverAddr, url);
+
+                try {
+                    return connection.send(parameters, httpStatement)
+                            .get(timeout, TimeUnit.MILLISECONDS);
+                } finally {
+                    connection.close();
+                }
+            } catch (TimeoutException e) {
+                // 超时后动态调整该服务的超时时间
+                adjustTimeout(httpStatement.getServiceId());
+                throw new RuntimeException("请求超时");
+            } catch (Exception e) {
+                log.error("请求执行异常", e);
+                throw new RuntimeException(e.getMessage());
             }
-
-            // 发起异步调用
-            CompletableFuture<Result> future = connection.send(parameters, url, httpStatement);
-
-            // 处理异步结果
-            future.whenComplete((result, throwable) -> {
-                ctx.executor().execute(() -> {
-                    try {
-                        if (throwable != null) {
-                            log.error("服务异步调用失败, URI: {}", request.uri(), throwable);
-                            DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error("服务调用失败: " + throwable.getMessage()));
-                            channel.writeAndFlush(response);
-                            return; // 结束处理
-                        }
-
-                        // 调用成功
-                        DefaultFullHttpResponse response = RequestResultUtil.parse(result);
-                        channel.writeAndFlush(response);
-                    } finally {
-                        request.release();
-                    }
-                });
-            });
-
-        } catch (Exception e) {
-            log.error("服务调用失败，URI: {}, 错误: {}", request.uri(), e.getMessage(), e);
-            DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error("服务调用失败"));
-            channel.writeAndFlush(response);
+        }, executorService).whenComplete((result, throwable) -> {
+            // 释放请求资源
             request.release();
+            if (throwable != null) {
+                sendError(channel, throwable.getMessage());
+                return;
+            }
+            sendResponse(channel, result);
+        });
+    }
+
+    private BaseConnection createConnection(boolean isHttp, String serverAddr, String url) {
+        if (isHttp) {
+            return new HTTPConnection(config.getAsyncHttpClient(), "http://" + serverAddr + url);
+        } else {
+            String dubboAddr = serverAddr.split(":")[0] + ":20880";
+            return new DubboConnection(config.getDubboServiceMap(), dubboAddr);
         }
+    }
+
+    private void adjustTimeout(String serviceId) {
+        serviceTimeoutCache.computeIfPresent(serviceId, (key, oldTimeout) ->
+                Math.min(oldTimeout + 1000, 30000) // 增加超时时间，但不超过30秒
+        );
+    }
+
+    private void sendError(Channel channel, String message) {
+        channel.writeAndFlush(RequestResultUtil.parse(Result.error(message)));
+    }
+
+    private void sendResponse(Channel channel, Result<?> result) {
+        channel.writeAndFlush(RequestResultUtil.parse(result));
     }
 }

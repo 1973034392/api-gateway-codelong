@@ -68,12 +68,9 @@ public class RedisMessageListener implements MessageListener {
         param.put("weight", config.getWeight());
         request.body(JSON.toJSONString(param));
 
-        log.debug("发送心跳请求，URL: {}, 参数: {}", fullUrl, param);
-
         // 执行请求
         try {
             HttpResponse response = request.execute();
-            log.info("心跳维持成功，响应: {}", response.body());
         } catch (Exception e) {
             log.error("心跳维持失败，URL: {}, 错误: {}", fullUrl, e.getMessage());
         }

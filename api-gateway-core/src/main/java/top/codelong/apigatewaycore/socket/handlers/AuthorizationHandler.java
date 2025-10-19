@@ -1,5 +1,7 @@
 package top.codelong.apigatewaycore.socket.handlers;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,6 +19,9 @@ import top.codelong.apigatewaycore.utils.JwtUtils;
 import top.codelong.apigatewaycore.utils.RequestParameterUtil;
 import top.codelong.apigatewaycore.utils.RequestResultUtil;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 /**
  * 授权处理器
  * 负责处理接口权限验证和JWT令牌验证
@@ -25,6 +30,14 @@ import top.codelong.apigatewaycore.utils.RequestResultUtil;
 @Component
 @ChannelHandler.Sharable
 public class AuthorizationHandler extends BaseHandler<FullHttpRequest> {
+    private static final AttributeKey<HttpStatement> HTTP_STATEMENT_KEY = AttributeKey.valueOf("HttpStatement");
+
+    // 用本地缓存来存储已验证的token
+    private static final Cache<String, Boolean> tokenCache = Caffeine.newBuilder()
+            .maximumSize(10000)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
+            .build();
+
     @Resource
     private InterfaceCacheUtil interfaceCacheUtil;
     @Resource
@@ -32,55 +45,56 @@ public class AuthorizationHandler extends BaseHandler<FullHttpRequest> {
 
     /**
      * 处理HTTP请求的授权验证
-     * @param ctx ChannelHandler上下文
-     * @param channel 当前Channel
-     * @param request HTTP请求
      */
     @Override
     protected void handle(ChannelHandlerContext ctx, Channel channel, FullHttpRequest request) {
         log.debug("开始处理授权验证，URI: {}", request.uri());
 
-        HttpStatement statement;
-        try {
-            // 从请求中获取URI
-            String uri = RequestParameterUtil.getUrl(request);
-            log.trace("解析请求URI: {}", uri);
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                String uri = RequestParameterUtil.getUrl(request);
+                log.trace("解析请求URI: {}", uri);
 
-            // 获取接口声明
-            statement = interfaceCacheUtil.getStatement(uri);
-            if (statement == null) {
-                log.warn("接口不存在，URI: {}", uri);
-                DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error("暂无该接口信息"));
-                channel.writeAndFlush(response);
+                HttpStatement statement = interfaceCacheUtil.getStatement(uri);
+                if (statement == null) {
+                    throw new IllegalArgumentException("接口不存在");
+                }
+
+                if (statement.getIsAuth()) {
+                    String token = RequestParameterUtil.getToken(request);
+                    // 首先检查本地缓存
+                    Boolean isValid = tokenCache.getIfPresent(token);
+                    if (isValid == null) {
+                        // 缓存中没有，执行验证
+                        isValid = jwtUtils.verify(token);
+                        if (isValid) {
+                            tokenCache.put(token, true);
+                        } else {
+                            throw new IllegalArgumentException("认证失败");
+                        }
+                    }
+                }
+
+                return statement;
+            } catch (Exception e) {
+                log.error("授权验证处理异常: {}", e.getMessage(), e);
+                throw e;
+            }
+        }).whenComplete((statement, throwable) -> {
+            if (throwable != null) {
+                // 释放请求资源
+                request.release();
+                sendError(channel, throwable.getMessage());
                 return;
             }
 
-            // 检查接口是否需要认证
-            if (statement.getIsAuth()) {
-                log.debug("接口需要认证，URI: {}", uri);
-                String token = RequestParameterUtil.getToken(request);
-                log.trace("获取到的Token: {}", token);
+            channel.attr(HTTP_STATEMENT_KEY).set(statement);
+            ctx.fireChannelRead(request);
+        });
+    }
 
-                if (!jwtUtils.verify(token)) {
-                    log.warn("Token验证失败，URI: {}", uri);
-                    DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error("没有权限访问该接口!"));
-                    channel.writeAndFlush(response);
-                    return;
-                }
-                log.debug("Token验证成功，URI: {}", uri);
-            }
-        } catch (Exception e) {
-            log.error("授权验证处理异常", e);
-            DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error("接口调用失败: " + e.getMessage()));
-            channel.writeAndFlush(response);
-            return;
-        }
-
-        // 将接口声明存入Channel属性
-        channel.attr(AttributeKey.valueOf("HttpStatement")).set(statement);
-        log.debug("授权验证通过，继续处理请求，URI: {}", request.uri());
-
-        // 传递给下一个处理器
-        ctx.fireChannelRead(request);
+    private void sendError(Channel channel, String message) {
+        DefaultFullHttpResponse response = RequestResultUtil.parse(Result.error(message));
+        channel.writeAndFlush(response);
     }
 }

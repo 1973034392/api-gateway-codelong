@@ -11,6 +11,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import top.codelong.sendsdk.common.enums.HttpMethod;
 import top.codelong.sendsdk.common.exception.GatewayException;
 import top.codelong.sendsdk.config.GatewaySDKProperties;
@@ -23,6 +24,7 @@ import java.util.Map;
  * 网关客户端核心类
  * 提供向网关发送请求的API
  */
+@Component
 public class GatewayClient {
     private static final Logger log = LoggerFactory.getLogger(GatewayClient.class);
 

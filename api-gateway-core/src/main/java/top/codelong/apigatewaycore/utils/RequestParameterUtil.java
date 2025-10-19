@@ -80,11 +80,15 @@ public class RequestParameterUtil {
                     return parameterMap;
                 case "application/json":
                     ByteBuf byteBuf = request.content();
-                    if (byteBuf.isReadable()) {
-                        String content = byteBuf.toString(StandardCharsets.UTF_8);
+                    try {
+                        if (byteBuf.isReadable()) {
+                            String content = byteBuf.toString(StandardCharsets.UTF_8);
+                            log.trace("JSON参数: {}", content);
+                            return JSON.parseObject(content);
+                        }
+                    } finally {
+                        // 确保ByteBuf被释放
                         byteBuf.release();
-                        log.trace("JSON参数: {}", content);
-                        return JSON.parseObject(content);
                     }
                     break;
                 case "none":
@@ -117,11 +121,15 @@ public class RequestParameterUtil {
                 }
                 case "application/json" -> {
                     ByteBuf byteBuf = request.content();
-                    if (byteBuf.isReadable()) {
-                        String content = byteBuf.toString(StandardCharsets.UTF_8);
+                    try {
+                        if (byteBuf.isReadable()) {
+                            String content = byteBuf.toString(StandardCharsets.UTF_8);
+                            log.trace("JSON参数: {}", content);
+                            return JSON.parseObject(content);
+                        }
+                    } finally {
+                        // 确保ByteBuf被释放
                         byteBuf.release();
-                        log.trace("JSON参数: {}", content);
-                        return JSON.parseObject(content);
                     }
                 }
                 case "none" -> {
