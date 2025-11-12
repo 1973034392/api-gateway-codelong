@@ -38,37 +38,39 @@ public class DistributedRateLimiter {
      * Redis Lua脚本 - 滑动窗口限流
      */
     private static final String SLIDING_WINDOW_SCRIPT =
-        "local key = KEYS[1]\n" +
-        "local limit = tonumber(ARGV[1])\n" +
-        "local window = tonumber(ARGV[2])\n" +
-        "local current = tonumber(ARGV[3])\n" +
-        "local expire_time = current - window * 1000\n" +
-        "redis.call('zremrangebyscore', key, 0, expire_time)\n" +
-        "local count = redis.call('zcard', key)\n" +
-        "if count < limit then\n" +
-        "    redis.call('zadd', key, current, current)\n" +
-        "    redis.call('expire', key, window + 1)\n" +
-        "    return 1\n" +
-        "else\n" +
-        "    return 0\n" +
-        "end";
+            """
+                    local key = KEYS[1]
+                    local limit = tonumber(ARGV[1])
+                    local window = tonumber(ARGV[2])
+                    local current = tonumber(ARGV[3])
+                    local expire_time = current - window * 1000
+                    redis.call('zremrangebyscore', key, 0, expire_time)
+                    local count = redis.call('zcard', key)
+                    if count < limit then
+                        redis.call('zadd', key, current, current)
+                        redis.call('expire', key, window + 1)
+                        return 1
+                    else
+                        return 0
+                    end""";
 
     /**
      * Redis Lua脚本 - 令牌桶限流
      */
     private static final String TOKEN_BUCKET_SCRIPT =
-        "local key = KEYS[1]\n" +
-        "local limit = tonumber(ARGV[1])\n" +
-        "local current = tonumber(redis.call('get', key) or '0')\n" +
-        "if current < limit then\n" +
-        "    redis.call('incr', key)\n" +
-        "    if current == 0 then\n" +
-        "        redis.call('expire', key, 1)\n" +
-        "    end\n" +
-        "    return 1\n" +
-        "else\n" +
-        "    return 0\n" +
-        "end";
+            """
+                    local key = KEYS[1]
+                    local limit = tonumber(ARGV[1])
+                    local current = tonumber(redis.call('get', key) or '0')
+                    if current < limit then
+                        redis.call('incr', key)
+                        if current == 0 then
+                            redis.call('expire', key, 1)
+                        end
+                        return 1
+                    else
+                        return 0
+                    end""";
 
     public DistributedRateLimiter(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -151,7 +153,7 @@ public class DistributedRateLimiter {
                 config.getLimitCount()
             );
 
-            return result != null && result == 1L;
+            return result == 1L;
         } catch (Exception e) {
             log.error("令牌桶限流执行失败: {}", redisKey, e);
             return true; // 异常时放行
@@ -176,7 +178,7 @@ public class DistributedRateLimiter {
                 currentTime
             );
 
-            return result != null && result == 1L;
+            return result == 1L;
         } catch (Exception e) {
             log.error("滑动窗口限流执行失败: {}", redisKey, e);
             return true; // 异常时放行
