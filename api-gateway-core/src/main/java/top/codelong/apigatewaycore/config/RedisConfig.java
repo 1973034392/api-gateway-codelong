@@ -10,6 +10,7 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import top.codelong.apigatewaycore.config.listener.RateLimitConfigListener;
 import top.codelong.apigatewaycore.config.listener.RedisMessageListener;
 
 /**
@@ -55,12 +56,14 @@ public class RedisConfig {
      * 创建Redis消息监听容器
      * @param factory Redis连接工厂
      * @param listener Redis消息监听器
+     * @param rateLimitConfigListener 限流配置监听器
      * @return 配置好的消息监听容器
      */
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer(
             RedisConnectionFactory factory,
-            RedisMessageListener listener) {
+            RedisMessageListener listener,
+            RateLimitConfigListener rateLimitConfigListener) {
         log.debug("开始配置Redis消息监听容器");
 
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
@@ -71,6 +74,10 @@ public class RedisConfig {
         log.info("添加消息监听器到heartBeat频道");
         container.addMessageListener(listener, new ChannelTopic("service-launched"));
         log.info("添加消息监听器到server频道");
+
+        // 添加限流配置监听器
+        container.addMessageListener(rateLimitConfigListener, new ChannelTopic("rate-limit-config-update"));
+        log.info("添加限流配置监听器到rate-limit-config-update频道");
 
         return container;
     }

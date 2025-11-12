@@ -102,3 +102,36 @@ create table gateway_server_group_rel
     update_time datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
 )
     comment '网关系统和实例分组关联表';
+
+-- 网关限流配置表
+create table gateway_rate_limit
+(
+    id           bigint                             not null comment '唯一id'
+        primary key,
+    rule_name    varchar(100)                       not null comment '限流规则名称',
+    limit_type   varchar(20)                        not null comment '限流类型：GLOBAL(全局)、SERVICE(服务级)、INTERFACE(接口级)、IP(IP级)',
+    limit_target varchar(200)                       not null comment '限流目标：服务名、接口URL、IP地址等',
+    limit_count  int                                not null comment '限流阈值（每秒请求数）',
+    time_window  int      default 1                 not null comment '时间窗口（秒）',
+    status       tinyint  default 1                 not null comment '是否启用：0-禁用，1-启用',
+    strategy     varchar(20) default 'TOKEN_BUCKET' not null comment '限流策略：TOKEN_BUCKET(令牌桶)、SLIDING_WINDOW(滑动窗口)',
+    create_time  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
+)
+    comment '网关限流配置表';
+
+create index idx_limit_type
+    on gateway_rate_limit (limit_type);
+
+create index idx_limit_target
+    on gateway_rate_limit (limit_target);
+
+create index idx_status
+    on gateway_rate_limit (status);
+
+-- 插入示例限流配置数据
+INSERT INTO gateway_rate_limit (id, rule_name, limit_type, limit_target, limit_count, time_window, status, strategy) VALUES
+(1, '全局限流', 'GLOBAL', 'GLOBAL', 10000, 1, 1, 'TOKEN_BUCKET'),
+(2, '测试服务限流', 'SERVICE', 'test-service', 1000, 1, 1, 'TOKEN_BUCKET'),
+(3, '登录接口限流', 'INTERFACE', 'test-service:/api/login', 100, 1, 1, 'SLIDING_WINDOW'),
+(4, 'IP限流', 'IP', '192.168.1.100', 50, 1, 1, 'TOKEN_BUCKET');
