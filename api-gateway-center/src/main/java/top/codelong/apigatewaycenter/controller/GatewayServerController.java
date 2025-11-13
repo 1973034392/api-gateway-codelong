@@ -53,4 +53,10 @@ public class GatewayServerController {
     public Result<PageResult<GatewayServerDO>> page(ServerPageReqVO reqVO) {
         return Result.success(gatewayServerService.page(reqVO));
     }
+
+    @GetMapping("/list")
+    @Operation(description = "获取所有网关服务列表")
+    public Result<java.util.List<GatewayServerDO>> list() {
+        return Result.success(gatewayServerService.list());
+    }
 }

@@ -47,4 +47,10 @@ public class GatewayGroupController {
     public Result<PageResult<GroupSaveReqVO>> page(GroupPageReqVO reqVO) {
         return Result.success(gatewayGroupService.page(reqVO));
     }
+
+    @GetMapping("/list")
+    @Operation(summary = "获取所有网关实例组列表")
+    public Result<java.util.List<GatewayGroupDO>> list() {
+        return Result.success(gatewayGroupService.list());
+    }
 }

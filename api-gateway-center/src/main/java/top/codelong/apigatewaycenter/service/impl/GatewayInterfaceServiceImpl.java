@@ -1,12 +1,14 @@
 package top.codelong.apigatewaycenter.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.dao.entity.GatewayInterfaceDO;
 import top.codelong.apigatewaycenter.dao.entity.GatewayMethodDO;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerDO;
@@ -195,5 +197,48 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
         redisPubUtil.ServerFlush();
         redisPubUtil.heartBeat();
         log.debug("成功注册服务到Redis并发送心跳，serverId: {}", serverId);
+    }
+
+    /**
+     * 分页查询接口列表
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @param serverId 服务ID（可选）
+     * @return 分页结果
+     */
+    @Override
+    public PageResult<GatewayInterfaceDO> page(Integer pageNum, Integer pageSize, Long serverId) {
+        log.info("分页查询接口列表，pageNum: {}, pageSize: {}, serverId: {}", pageNum, pageSize, serverId);
+
+        Page<GatewayInterfaceDO> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<GatewayInterfaceDO> queryWrapper = new LambdaQueryWrapper<>();
+
+        if (serverId != null) {
+            queryWrapper.eq(GatewayInterfaceDO::getServerId, serverId);
+        }
+
+        queryWrapper.orderByDesc(GatewayInterfaceDO::getId);
+
+        Page<GatewayInterfaceDO> resultPage = this.page(page, queryWrapper);
+
+        log.info("成功查询接口列表，总数: {}", resultPage.getTotal());
+        return new PageResult<>(resultPage.getRecords(), resultPage.getTotal(), pageNum, pageSize);
+    }
+
+    /**
+     * 获取所有接口列表
+     * @return 接口列表
+     */
+    @Override
+    public List<GatewayInterfaceDO> list() {
+        log.info("获取所有接口列表");
+
+        LambdaQueryWrapper<GatewayInterfaceDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(GatewayInterfaceDO::getId);
+
+        List<GatewayInterfaceDO> list = this.list(queryWrapper);
+
+        log.info("成功获取接口列表，总数: {}", list.size());
+        return list;
     }
 }

@@ -3,10 +3,8 @@ package top.codelong.apigatewaycenter.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.common.result.Result;
 import top.codelong.apigatewaycenter.dto.req.InterfaceMethodSaveReqVO;
 import top.codelong.apigatewaycenter.service.GatewayInterfaceService;
@@ -20,7 +18,22 @@ public class GatewayInterfaceController {
 
     @PostMapping("/create")
     @Operation(description = "保存网关接口和方法信息")
-    private Result<Long> create(@RequestBody InterfaceMethodSaveReqVO reqVO) {
+    public Result<Long> create(@RequestBody InterfaceMethodSaveReqVO reqVO) {
         return Result.success(gatewayInterfaceService.create(reqVO));
+    }
+
+    @GetMapping("/page")
+    @Operation(description = "分页查询网关接口列表")
+    public Result<PageResult<?>> page(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Long serverId) {
+        return Result.success(gatewayInterfaceService.page(pageNum, pageSize, serverId));
+    }
+
+    @GetMapping("/list")
+    @Operation(description = "获取所有网关接口列表")
+    public Result<java.util.List<?>> list() {
+        return Result.success(gatewayInterfaceService.list());
     }
 }
