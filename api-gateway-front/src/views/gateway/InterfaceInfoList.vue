@@ -93,7 +93,7 @@ const loadData = async () => {
     for (const service of services.value) {
       try {
         const apiRes = await gatewayInterface.page({
-          pageNum: 1,
+          pageNo: 1,
           pageSize: 100,
           serverId: service.id
         })

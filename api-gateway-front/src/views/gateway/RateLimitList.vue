@@ -126,18 +126,18 @@
       <div v-if="configs.length > 0" class="pagination">
         <button
           class="btn btn-sm btn-outline"
-          :disabled="pagination.pageNum === 1"
-          @click="pagination.pageNum--; loadData()"
+          :disabled="pagination.pageNo === 1"
+          @click="pagination.pageNo--; loadData()"
         >
           上一页
         </button>
         <span class="page-info">
-          第 {{ pagination.pageNum }} 页 / 共 {{ Math.ceil(pagination.total / pagination.pageSize) }} 页
+          第 {{ pagination.pageNo }} 页 / 共 {{ Math.ceil(pagination.total / pagination.pageSize) }} 页
         </span>
         <button
           class="btn btn-sm btn-outline"
-          :disabled="pagination.pageNum * pagination.pageSize >= pagination.total"
-          @click="pagination.pageNum++; loadData()"
+          :disabled="pagination.pageNo * pagination.pageSize >= pagination.total"
+          @click="pagination.pageNo++; loadData()"
         >
           下一页
         </button>
@@ -232,7 +232,7 @@ const createDialogVisible = ref(false)
 
 const configs = ref([])
 const pagination = reactive({
-  pageNum: 1,
+  pageNo: 1,
   pageSize: 10,
   total: 0
 })
@@ -251,7 +251,7 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await rateLimitConfig.list({
-      pageNum: pagination.pageNum,
+      pageNo: pagination.pageNo,
       pageSize: pagination.pageSize
     })
     configs.value = res.list || []

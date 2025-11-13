@@ -145,7 +145,7 @@ const loadData = async () => {
 
     // 加载绑定关系列表
     const bindRes = await serviceBinding.page({
-      pageNum: 1,
+      pageNo: 1,
       pageSize: 100
     })
     bindings.value = bindRes.list || []
