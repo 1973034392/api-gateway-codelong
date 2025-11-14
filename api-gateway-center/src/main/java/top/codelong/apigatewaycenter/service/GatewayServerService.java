@@ -13,13 +13,13 @@ import top.codelong.apigatewaycenter.dto.req.ServerSaveReqVO;
  */
 public interface GatewayServerService extends IService<GatewayServerDO> {
 
-    Long create(ServerSaveReqVO reqVO);
+    String create(ServerSaveReqVO reqVO);
 
     boolean update(ServerSaveReqVO reqVO);
 
-    Boolean updateStatus(Long id);
+    Boolean updateStatus(String id);
 
-    ServerSaveReqVO get(Long id);
+    ServerSaveReqVO get(String id);
 
     PageResult<GatewayServerDO> page(ServerPageReqVO reqVO);
 }

@@ -15,12 +15,12 @@ const routes = [
       {
         path: 'core-service',
         component: CoreServiceList,
-        meta: { title: '核心服务管理' }
+        meta: { title: '下游服务管理' }
       },
       {
         path: 'gateway-service',
         component: GatewayServiceList,
-        meta: { title: '网关服务管理' }
+        meta: { title: '网关实例管理' }
       },
       {
         path: 'interface-info',

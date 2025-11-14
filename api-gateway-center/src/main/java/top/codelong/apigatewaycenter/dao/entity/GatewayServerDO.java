@@ -18,7 +18,7 @@ public class GatewayServerDO {
      * 唯一id
      */
     @TableId
-    private Long id;
+    private String id;
 
     /**
      * 服务名

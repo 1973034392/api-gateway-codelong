@@ -37,11 +37,11 @@ public class GatewayGroupServiceImpl extends ServiceImpl<GatewayGroupMapper, Gat
      * @throws RuntimeException 当分组key已存在时抛出
      */
     @Override
-    public Long create(GroupSaveReqVO reqVO) {
+    public String create(GroupSaveReqVO reqVO) {
         log.info("开始创建网关实例分组，请求参数: {}", reqVO);
         GatewayGroupDO bean = BeanUtil.toBean(reqVO, GatewayGroupDO.class);
         bean.setId(uniqueIdUtil.nextId());
-        Long keyId = gatewayGroupMapper.getIdByKey(bean.getGroupKey());
+        String keyId = gatewayGroupMapper.getIdByKey(bean.getGroupKey());
         if (keyId != null) {
             log.error("创建网关实例分组失败，分组key已存在: {}", bean.getGroupKey());
             throw new RuntimeException("网关实例分组key已存在");
@@ -73,7 +73,7 @@ public class GatewayGroupServiceImpl extends ServiceImpl<GatewayGroupMapper, Gat
      * @throws RuntimeException 当ID为空或分组不存在时抛出
      */
     @Override
-    public Boolean delete(Long id) {
+    public Boolean delete(String id) {
         log.info("开始删除网关实例分组，分组ID: {}", id);
         if (id == null) {
             log.error("删除网关实例分组失败，分组ID不能为空");

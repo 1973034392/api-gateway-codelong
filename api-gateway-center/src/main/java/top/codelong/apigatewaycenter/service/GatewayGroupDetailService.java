@@ -16,15 +16,15 @@ import top.codelong.apigatewaycenter.dto.resp.GroupDetailRegisterRespVO;
  */
 public interface GatewayGroupDetailService extends IService<GatewayGroupDetailDO> {
 
-    Long create(GroupDetailSaveReqVO reqVO);
+    String create(GroupDetailSaveReqVO reqVO);
 
     Boolean update(GroupDetailSaveReqVO reqVO);
 
-    Boolean delete(Long id);
+    Boolean delete(String id);
 
-    GroupDetailSaveReqVO get(Long id);
+    GroupDetailSaveReqVO get(String id);
 
-    Boolean updateStatus(Long id);
+    Boolean updateStatus(String id);
 
     PageResult<GroupDetailSaveReqVO> page(GroupDetailPageReqVO reqVO);
 
@@ -33,4 +33,6 @@ public interface GatewayGroupDetailService extends IService<GatewayGroupDetailDO
     String keepAlive(HeartBeatReqVO reqVO);
 
     String getServerName(String groupKey);
+
+    java.util.List<GroupDetailSaveReqVO> listByGroupId(String groupId);
 }

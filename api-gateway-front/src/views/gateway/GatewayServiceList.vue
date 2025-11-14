@@ -3,7 +3,7 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div>
-        <h1>网关服务管理</h1>
+        <h1>网关实例管理</h1>
         <p class="subtitle">管理 API 网关服务及其密钥配置</p>
       </div>
       <button class="btn btn-primary" @click="openDialog('create')">
@@ -52,30 +52,10 @@
                 </svg>
               </button>
               <div class="service-details">
-                <h3>{{ service.serverName }}</h3>
+                <h3>{{ service.groupName }}</h3>
                 <div class="service-meta">
-                  <span class="badge">{{ service.safeKey }}</span>
+                  <span class="badge">{{ service.groupKey }}</span>
                   <span class="meta-text">实例数: {{ getInstanceCount(service.id) }}</span>
-                </div>
-                <div class="secret-display">
-                  <span class="secret-label">密钥:</span>
-                  <code class="secret-value">
-                    {{ visibleSecrets.has(service.id) ? service.safeSecret : maskSecret(service.safeSecret) }}
-                  </code>
-                  <button
-                    class="toggle-secret-btn"
-                    @click.stop="toggleSecretVisibility(service.id)"
-                    :title="visibleSecrets.has(service.id) ? '隐藏' : '显示'"
-                  >
-                    <svg v-if="visibleSecrets.has(service.id)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                      <line x1="1" y1="1" x2="23" y2="23"></line>
-                    </svg>
-                    <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </button>
                 </div>
               </div>
             </div>
@@ -92,15 +72,15 @@
               <div class="table-header">
                 <div class="col col-ip">IP 地址</div>
                 <div class="col col-port">端口</div>
-                <div class="col col-heartbeat">上次心跳</div>
-                <div class="col col-start">启动时间</div>
+                <div class="col col-name">名字</div>
+                <div class="col col-weight">权重</div>
                 <div class="col col-status">状态</div>
               </div>
               <div v-for="instance in instancesMap[service.id]" :key="instance.id" class="table-row">
-                <div class="col col-ip">{{ instance.serverAddress }}</div>
-                <div class="col col-port">{{ instance.serverAddress?.split(':')[1] || '-' }}</div>
-                <div class="col col-heartbeat">{{ instance.lastHeartbeatTime || '未知' }}</div>
-                <div class="col col-start">{{ instance.startTime || '未知' }}</div>
+                <div class="col col-ip">{{ instance.address }}</div>
+                <div class="col col-port">{{ instance.address?.split(':')[1] || '-' }}</div>
+                <div class="col col-name">{{ instance.name || '-' }}</div>
+                <div class="col col-weight">{{ instance.weight || '-' }}</div>
                 <div class="col col-status">
                   <span class="status-badge" :class="{ online: instance.status === 1 }">
                     {{ instance.status === 1 ? '在线' : '离线' }}
@@ -153,7 +133,7 @@
           <div class="form-group">
             <label>服务名称</label>
             <input
-              v-model="formData.serverName"
+              v-model="formData.groupName"
               type="text"
               placeholder="请输入服务名称"
               class="form-input"
@@ -162,18 +142,9 @@
           <div class="form-group">
             <label>唯一 Key</label>
             <input
-              v-model="formData.safeKey"
+              v-model="formData.groupKey"
               type="text"
               placeholder="请输入唯一 Key"
-              class="form-input"
-            />
-          </div>
-          <div class="form-group">
-            <label>安全密钥</label>
-            <input
-              v-model="formData.safeSecret"
-              type="password"
-              placeholder="请输入安全密钥"
               class="form-input"
             />
           </div>
@@ -198,7 +169,6 @@ const dialogVisible = ref(false)
 const dialogMode = ref('create')
 const dialogTitle = ref('创建网关服务')
 const expandedServices = ref(new Set())
-const visibleSecrets = ref(new Set())
 const instancesMap = ref({})
 
 const searchForm = reactive({
@@ -207,8 +177,8 @@ const searchForm = reactive({
 
 const formData = reactive({
   id: null,
-  serverName: '',
-  safeKey: '',
+  groupName: '',
+  groupKey: '',
   safeSecret: ''
 })
 
@@ -224,7 +194,7 @@ const loadData = async () => {
     const res = await gatewayService.page({
       pageNo: pagination.pageNo,
       pageSize: pagination.pageSize,
-      serverName: searchForm.serviceName
+      name: searchForm.serviceName
     })
     tableData.value = res.list || []
     pagination.total = res.total || 0
@@ -251,21 +221,21 @@ const openDialog = (mode, row = null) => {
   if (mode === 'create') {
     dialogTitle.value = '创建网关服务'
     formData.id = null
-    formData.serverName = ''
-    formData.safeKey = ''
+    formData.groupName = ''
+    formData.groupKey = ''
     formData.safeSecret = ''
   } else {
     dialogTitle.value = '编辑网关服务'
     formData.id = row.id
-    formData.serverName = row.serverName
-    formData.safeKey = row.safeKey
+    formData.groupName = row.groupName
+    formData.groupKey = row.groupKey
     formData.safeSecret = row.safeSecret
   }
   dialogVisible.value = true
 }
 
 const handleSubmit = async () => {
-  if (!formData.serverName || !formData.safeKey || !formData.safeSecret) {
+  if (!formData.groupName || !formData.groupKey) {
     ElMessage.error('请填写所有必填项')
     return
   }
@@ -273,17 +243,15 @@ const handleSubmit = async () => {
   try {
     if (dialogMode.value === 'create') {
       await gatewayService.create({
-        serverName: formData.serverName,
-        safeKey: formData.safeKey,
-        safeSecret: formData.safeSecret
+        groupName: formData.groupName,
+        groupKey: formData.groupKey
       })
       ElMessage.success('创建成功')
     } else {
       await gatewayService.update({
         id: formData.id,
-        serverName: formData.serverName,
-        safeKey: formData.safeKey,
-        safeSecret: formData.safeSecret
+        groupName: formData.groupName,
+        groupKey: formData.groupKey
       })
       ElMessage.success('更新成功')
     }
@@ -313,17 +281,21 @@ const handleDelete = (id) => {
 }
 
 const toggleService = (serviceId) => {
-  if (expandedServices.value.has(serviceId)) {
-    expandedServices.value.delete(serviceId)
+  const newSet = new Set(expandedServices.value)
+  if (newSet.has(serviceId)) {
+    newSet.delete(serviceId)
   } else {
-    expandedServices.value.add(serviceId)
+    newSet.add(serviceId)
     loadInstances(serviceId)
   }
+  expandedServices.value = newSet
 }
 
 const viewInstances = async (service) => {
   if (!expandedServices.value.has(service.id)) {
-    expandedServices.value.add(service.id)
+    const newSet = new Set(expandedServices.value)
+    newSet.add(service.id)
+    expandedServices.value = newSet
     await loadInstances(service.id)
   }
 }
@@ -339,18 +311,6 @@ const loadInstances = async (serverId) => {
 
 const getInstanceCount = (serviceId) => {
   return instancesMap.value[serviceId]?.length || 0
-}
-
-const toggleSecretVisibility = (serviceId) => {
-  if (visibleSecrets.value.has(serviceId)) {
-    visibleSecrets.value.delete(serviceId)
-  } else {
-    visibleSecrets.value.add(serviceId)
-  }
-}
-
-const maskSecret = (secret) => {
-  return '•'.repeat(Math.min(secret?.length || 0, 20))
 }
 
 // 初始加载
@@ -519,43 +479,6 @@ loadData()
 
 .meta-text {
   color: #717182;
-}
-
-.secret-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.secret-label {
-  color: #717182;
-}
-
-.secret-value {
-  background: #f3f3f5;
-  color: #030213;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 12px;
-}
-
-.toggle-secret-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border: none;
-  background: transparent;
-  color: #717182;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.toggle-secret-btn:hover {
-  color: #030213;
 }
 
 .service-actions {

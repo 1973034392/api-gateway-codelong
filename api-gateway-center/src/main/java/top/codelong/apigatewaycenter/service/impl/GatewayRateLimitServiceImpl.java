@@ -37,7 +37,7 @@ public class GatewayRateLimitServiceImpl implements GatewayRateLimitService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long createRateLimitConfig(RateLimitConfigReqVO reqVO) {
+    public String createRateLimitConfig(RateLimitConfigReqVO reqVO) {
         log.info("创建限流配置: {}", reqVO);
 
         // 构建实体
@@ -105,7 +105,7 @@ public class GatewayRateLimitServiceImpl implements GatewayRateLimitService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean deleteRateLimitConfig(Long id) {
+    public Boolean deleteRateLimitConfig(String id) {
         log.info("删除限流配置，ID: {}", id);
 
         GatewayRateLimitDO rateLimitDO = rateLimitMapper.selectById(id);
@@ -129,7 +129,7 @@ public class GatewayRateLimitServiceImpl implements GatewayRateLimitService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean updateStatus(Long id, Integer status) {
+    public Boolean updateStatus(String id, Integer status) {
         log.info("更新限流配置状态，ID: {}, status: {}", id, status);
 
         GatewayRateLimitDO rateLimitDO = rateLimitMapper.selectById(id);
@@ -154,7 +154,7 @@ public class GatewayRateLimitServiceImpl implements GatewayRateLimitService {
     }
 
     @Override
-    public GatewayRateLimitDO getRateLimitConfig(Long id) {
+    public GatewayRateLimitDO getRateLimitConfig(String id) {
         return rateLimitMapper.selectById(id);
     }
 

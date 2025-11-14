@@ -20,11 +20,13 @@ public interface GatewayGroupDetailMapper extends BaseMapper<GatewayGroupDetailD
 
     List<GroupDetailSaveReqVO> pageInfo(Page<GroupDetailSaveReqVO> page, GroupDetailPageReqVO reqVO);
 
-    Long getIdByAddr(String address);
+    String getIdByAddr(String address);
 
     void offline(String s);
 
     Integer registerIfAbsent(String detailAddress);
+
+    List<GroupDetailSaveReqVO> listByGroupId(String groupId);
 }
 
 

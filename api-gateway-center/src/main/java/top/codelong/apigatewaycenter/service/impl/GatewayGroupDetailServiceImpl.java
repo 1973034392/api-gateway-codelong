@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,6 @@ import top.codelong.apigatewaycenter.service.GatewayGroupDetailService;
 import top.codelong.apigatewaycenter.utils.NginxConfUtil;
 import top.codelong.apigatewaycenter.utils.RedisPubUtil;
 import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
-import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -57,7 +57,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
      * @return 创建的网关实例ID
      */
     @Override
-    public Long create(GroupDetailSaveReqVO reqVO) {
+    public String create(GroupDetailSaveReqVO reqVO) {
         log.info("开始创建新网关实例，请求参数：{}", reqVO);
 
         String key = reqVO.getGroupKey();
@@ -66,13 +66,13 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
             throw new RuntimeException("请选择所属网关实例");
         }
 
-        Long groupId = gatewayGroupMapper.getIdByKey(key);
+        String groupId = gatewayGroupMapper.getIdByKey(key);
         if (groupId == null) {
             log.warn("创建网关实例失败：网关实例不存在，groupKey={}", key);
             throw new RuntimeException("网关实例不存在");
         }
 
-        Long id = gatewayGroupDetailMapper.getIdByAddr(reqVO.getAddress());
+        String id = gatewayGroupDetailMapper.getIdByAddr(reqVO.getAddress());
         if (id != null) {
             log.info("网关实例已存在，直接返回ID：{}", id);
             return id;
@@ -108,7 +108,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
             throw new RuntimeException("请选择所属网关组");
         }
 
-        Long groupId = gatewayGroupMapper.getIdByKey(key);
+        String groupId = gatewayGroupMapper.getIdByKey(key);
         if (groupId == null) {
             log.warn("更新网关实例失败：网关组实例不存在，groupKey={}", key);
             throw new RuntimeException("网关组实例不存在");
@@ -135,7 +135,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
      * @return 操作结果
      */
     @Override
-    public Boolean delete(Long id) {
+    public Boolean delete(String id) {
         log.info("开始删除网关实例，ID：{}", id);
 
         if (id == null) {
@@ -162,7 +162,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
      * @return 网关实例信息
      */
     @Override
-    public GroupDetailSaveReqVO get(Long id) {
+    public GroupDetailSaveReqVO get(String id) {
         log.info("开始获取网关实例详情，ID：{}", id);
 
         if (id == null) {
@@ -196,7 +196,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
      * @return 操作结果
      */
     @Override
-    public Boolean updateStatus(Long id) {
+    public Boolean updateStatus(String id) {
         log.info("开始更新网关实例状态，ID：{}", id);
 
         if (id == null) {
@@ -273,7 +273,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         log.info("开始注册网关实例，请求参数：{}", reqVO);
 
         Integer count = gatewayGroupDetailMapper.registerIfAbsent(reqVO.getDetailAddress());
-        Long groupId = gatewayGroupMapper.getIdByKey(reqVO.getGroupKey());
+        String groupId = gatewayGroupMapper.getIdByKey(reqVO.getGroupKey());
 
         if (groupId == null) {
             log.warn("注册网关实例失败：未选择所属网关组");
@@ -293,7 +293,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
                     .build();
         }
 
-        Long detailId = gatewayGroupDetailMapper.getIdByAddr(reqVO.getDetailAddress());
+        String detailId = gatewayGroupDetailMapper.getIdByAddr(reqVO.getDetailAddress());
         GatewayGroupDetailDO detailDO = new GatewayGroupDetailDO();
         detailDO.setId(detailId == null ? uniqueIdUtil.nextId() : detailId);
         detailDO.setGroupId(groupId);
@@ -355,5 +355,26 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         redisTemplate.opsForHash().put("heartbeat:group:" + server + ":" + reqVO.getAddr(), "lastTime", LocalDateTime.now().toString());
         redisTemplate.expire("heartbeat:group:" + server + ":" + reqVO.getAddr(), 30, TimeUnit.SECONDS);
         return server;
+    }
+
+    /**
+     * 根据分组ID获取该分组下的所有实例列表
+     *
+     * @param groupId 分组ID
+     * @return 实例列表
+     */
+    @Override
+    public List<GroupDetailSaveReqVO> listByGroupId(String groupId) {
+        log.info("开始根据分组ID获取实例列表，groupId={}", groupId);
+
+        if (StrUtil.isBlank(groupId)) {
+            log.warn("获取实例列表失败：groupId为空");
+            throw new RuntimeException("分组ID不能为空");
+        }
+
+        List<GroupDetailSaveReqVO> list = gatewayGroupDetailMapper.listByGroupId(groupId);
+        log.info("成功获取实例列表，groupId={}，共查询到{}条记录", groupId, list.size());
+
+        return list;
     }
 }

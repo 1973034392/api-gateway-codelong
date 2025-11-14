@@ -60,12 +60,12 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long create(InterfaceMethodSaveReqVO reqVO) {
+    public String create(InterfaceMethodSaveReqVO reqVO) {
         log.info("开始创建接口及其方法，请求参数: {}", reqVO);
 
         String safeKey = reqVO.getSafeKey();
         String safeSecret = reqVO.getSafeSecret();
-        Long serverId = gatewayServerMapper.getIdBySafeKey(safeKey);
+        String serverId = gatewayServerMapper.getIdBySafeKey(safeKey);
         if (serverId == null) {
             log.error("创建接口失败，服务不存在，safeKey: {}", safeKey);
             throw new RuntimeException("该服务不存在");
@@ -172,7 +172,7 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
      * @param reqVO    接口方法保存请求VO
      * @param serverId 服务ID
      */
-    private void registerService(InterfaceMethodSaveReqVO reqVO, Long serverId) {
+    private void registerService(InterfaceMethodSaveReqVO reqVO, String serverId) {
         log.debug("开始注册服务到Redis，serverId: {}", serverId);
         String serverUrl = reqVO.getServerUrl();
         GatewayServerDetailDO detailDO = gatewayServerDetailMapper.selectOne(new LambdaQueryWrapper<GatewayServerDetailDO>()
@@ -207,7 +207,7 @@ public class GatewayInterfaceServiceImpl extends ServiceImpl<GatewayInterfaceMap
      * @return 分页结果
      */
     @Override
-    public PageResult<GatewayInterfaceDO> page(Integer pageNum, Integer pageSize, Long serverId) {
+    public PageResult<GatewayInterfaceDO> page(Integer pageNum, Integer pageSize, String serverId) {
         log.info("分页查询接口列表，pageNum: {}, pageSize: {}, serverId: {}", pageNum, pageSize, serverId);
 
         Page<GatewayInterfaceDO> page = new Page<>(pageNum, pageSize);

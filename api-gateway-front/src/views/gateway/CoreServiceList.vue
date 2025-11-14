@@ -3,7 +3,7 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div>
-        <h1>核心服务管理</h1>
+        <h1>下游服务管理</h1>
         <p class="subtitle">管理和监控所有核心服务及其实例</p>
       </div>
       <button class="btn btn-primary" @click="openDialog('create')">
@@ -72,15 +72,15 @@
               <div class="table-header">
                 <div class="col col-ip">IP 地址</div>
                 <div class="col col-port">端口</div>
-                <div class="col col-heartbeat">上次心跳</div>
-                <div class="col col-start">启动时间</div>
+                <div class="col col-create">创建时间</div>
+                <div class="col col-update">修改时间</div>
                 <div class="col col-status">状态</div>
               </div>
               <div v-for="instance in instancesMap[service.id]" :key="instance.id" class="table-row">
                 <div class="col col-ip">{{ instance.serverAddress }}</div>
                 <div class="col col-port">{{ instance.serverAddress?.split(':')[1] || '-' }}</div>
-                <div class="col col-heartbeat">{{ instance.lastHeartbeatTime || '未知' }}</div>
-                <div class="col col-start">{{ instance.startTime || '未知' }}</div>
+                <div class="col col-create">{{ formatTime(instance.createTime) }}</div>
+                <div class="col col-update">{{ formatTime(instance.updateTime) }}</div>
                 <div class="col col-status">
                   <span class="status-badge" :class="{ online: instance.status === 1 }">
                     {{ instance.status === 1 ? '在线' : '离线' }}
@@ -171,6 +171,27 @@
 import {reactive, ref} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {coreService} from '../../api/gateway'
+
+// 时间格式化函数
+const formatTime = (timeStr) => {
+  if (!timeStr) return '未知'
+  try {
+    // 处理 ISO 8601 格式 (2025-11-14T10:57:41)
+    const date = new Date(timeStr)
+    if (isNaN(date.getTime())) return '未知'
+
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const seconds = String(date.getSeconds()).padStart(2, '0')
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  } catch (error) {
+    return '未知'
+  }
+}
 
 const loading = ref(false)
 const tableData = ref([])

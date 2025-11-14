@@ -78,10 +78,10 @@ public class UniqueIdUtil {
 
     /**
      * 生成唯一ID
-     * @return 生成的唯一ID
+     * @return 生成的唯一ID（字符串格式，避免 JavaScript 精度丢失）
      * @throws RuntimeException 当时钟回拨异常时抛出
      */
-    public synchronized long nextId() {
+    public synchronized String nextId() {
         log.debug("开始生成唯一ID");
         long timestamp = System.currentTimeMillis();
 
@@ -128,7 +128,7 @@ public class UniqueIdUtil {
                 | sequence;
 
         log.debug("成功生成唯一ID: {}", id);
-        return id;
+        return String.valueOf(id);
     }
 
     /**

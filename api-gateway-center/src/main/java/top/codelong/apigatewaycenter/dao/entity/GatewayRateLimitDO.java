@@ -17,7 +17,7 @@ public class GatewayRateLimitDO {
      * 唯一id
      */
     @TableId
-    private Long id;
+    private String id;
 
     /**
      * 限流规则名称

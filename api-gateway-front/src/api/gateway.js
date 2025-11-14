@@ -87,7 +87,7 @@ export const gatewayInterface = {
   list: () => api.get('/gateway-interface/list'),
 
   // 获取接口的方法列表
-  getMethods: (interfaceId) => api.get(`/gateway-interface/methods/${interfaceId}`),
+  getMethods: (interfaceId) => api.get(`/gateway-method/list/${interfaceId}`),
 
   // 创建方法
   createMethod: (data) => api.post('/gateway-method/create', data),

@@ -7,7 +7,7 @@ import lombok.Data;
 @Schema(description = "网关实例组详情请求参数")
 public class GroupDetailSaveReqVO {
     @Schema(description = "网关实例组详情id")
-    private Long id;
+    private String id;
     @Schema(description = "网关实例组key")
     private String groupKey;
     @Schema(description = "网关实例详情名称")

@@ -22,7 +22,7 @@ public class GatewayGroupDetailController {
 
     @PostMapping("/create")
     @Operation(summary = "创建网关实例组详情")
-    public Result<Long> create(@RequestBody GroupDetailSaveReqVO reqVO) {
+    public Result<String> create(@RequestBody GroupDetailSaveReqVO reqVO) {
         return Result.success(gatewayGroupDetailService.create(reqVO));
     }
 
@@ -34,13 +34,13 @@ public class GatewayGroupDetailController {
 
     @DeleteMapping("/delete")
     @Operation(summary = "删除网关实例组详情")
-    public Result<Boolean> delete(@RequestParam Long id) {
+    public Result<Boolean> delete(@RequestParam String id) {
         return Result.success(gatewayGroupDetailService.delete(id));
     }
 
     @GetMapping("/get")
     @Operation(summary = "查询网关实例组详情")
-    public Result<GroupDetailSaveReqVO> get(@RequestParam Long id) {
+    public Result<GroupDetailSaveReqVO> get(@RequestParam String id) {
         return Result.success(gatewayGroupDetailService.get(id));
     }
 
@@ -52,7 +52,7 @@ public class GatewayGroupDetailController {
 
     @PutMapping("/update/status")
     @Operation(summary = "更新网关实例组详情状态")
-    public Result<Boolean> updateStatus(@RequestParam Long id) {
+    public Result<Boolean> updateStatus(@RequestParam String id) {
         return Result.success(gatewayGroupDetailService.updateStatus(id));
     }
 
@@ -72,5 +72,11 @@ public class GatewayGroupDetailController {
     @Operation(summary = "维持网关实例组详情心跳")
     public Result<String> keepAlive(@RequestBody HeartBeatReqVO reqVO) {
         return Result.success(gatewayGroupDetailService.keepAlive(reqVO));
+    }
+
+    @GetMapping("/list/{groupId}")
+    @Operation(summary = "根据分组ID获取实例列表")
+    public Result<java.util.List<GroupDetailSaveReqVO>> list(@PathVariable String groupId) {
+        return Result.success(gatewayGroupDetailService.listByGroupId(groupId));
     }
 }

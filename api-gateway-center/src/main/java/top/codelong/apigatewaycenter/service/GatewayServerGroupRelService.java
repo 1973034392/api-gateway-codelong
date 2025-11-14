@@ -1,8 +1,10 @@
 package top.codelong.apigatewaycenter.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import top.codelong.apigatewaycenter.common.page.PageResult;
 import top.codelong.apigatewaycenter.dao.entity.GatewayServerGroupRelDO;
 import top.codelong.apigatewaycenter.dto.req.ServerGroupRelSaveReqVO;
+import top.codelong.apigatewaycenter.dto.resp.ServerGroupRelRespVO;
 
 /**
 * @author CodeLong
@@ -11,5 +13,13 @@ import top.codelong.apigatewaycenter.dto.req.ServerGroupRelSaveReqVO;
 */
 public interface GatewayServerGroupRelService extends IService<GatewayServerGroupRelDO> {
 
-    Long create(ServerGroupRelSaveReqVO reqVO);
+    String create(ServerGroupRelSaveReqVO reqVO);
+
+    /**
+     * 分页查询服务与分组关联列表
+     * @param pageNo 页码
+     * @param pageSize 每页大小
+     * @return 分页结果
+     */
+    PageResult<ServerGroupRelRespVO> page(Integer pageNo, Integer pageSize);
 }

@@ -20,7 +20,7 @@ public class GatewayGroupController {
 
     @PostMapping("/create")
     @Operation(summary = "创建网关实例组")
-    public Result<Long> create(@RequestBody GroupSaveReqVO reqVO) {
+    public Result<String> create(@RequestBody GroupSaveReqVO reqVO) {
         return Result.success(gatewayGroupService.create(reqVO));
     }
 
@@ -32,13 +32,13 @@ public class GatewayGroupController {
 
     @DeleteMapping("/delete")
     @Operation(summary = "删除网关实例组")
-    public Result<Boolean> delete(@RequestParam Long id) {
+    public Result<Boolean> delete(@RequestParam String id) {
         return Result.success(gatewayGroupService.delete(id));
     }
 
     @GetMapping("/get")
     @Operation(summary = "查询网关实例组")
-    public Result<GatewayGroupDO> get(@RequestParam Long id) {
+    public Result<GatewayGroupDO> get(@RequestParam String id) {
         return Result.success(gatewayGroupService.getById(id));
     }
 

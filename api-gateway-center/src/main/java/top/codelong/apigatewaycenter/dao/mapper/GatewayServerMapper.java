@@ -21,11 +21,11 @@ public interface GatewayServerMapper extends BaseMapper<GatewayServerDO> {
 
     List<GatewayServerDO> pageInfo(Page<ServerSaveReqVO> page, String name, Integer status);
 
-    Long getIdBySafeKey(String safeKey);
+    String getIdBySafeKey(String safeKey);
 
     String getServerNameBySafeKey(String safeKey);
 
-    GatewayServerDO getServerByGroupId(Long groupId);
+    GatewayServerDO getServerByGroupId(String groupId);
 }
 
 

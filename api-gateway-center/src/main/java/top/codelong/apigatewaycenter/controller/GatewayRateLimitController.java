@@ -24,10 +24,10 @@ public class GatewayRateLimitController {
      * 创建限流配置
      */
     @PostMapping("/create")
-    public Result<Long> createRateLimitConfig(@RequestBody RateLimitConfigReqVO reqVO) {
+    public Result<String> createRateLimitConfig(@RequestBody RateLimitConfigReqVO reqVO) {
         log.info("创建限流配置请求: {}", reqVO);
         try {
-            Long id = rateLimitService.createRateLimitConfig(reqVO);
+            String id = rateLimitService.createRateLimitConfig(reqVO);
             return Result.success(id);
         } catch (Exception e) {
             log.error("创建限流配置失败", e);
@@ -54,7 +54,7 @@ public class GatewayRateLimitController {
      * 删除限流配置
      */
     @DeleteMapping("/delete/{id}")
-    public Result<Boolean> deleteRateLimitConfig(@PathVariable Long id) {
+    public Result<Boolean> deleteRateLimitConfig(@PathVariable String id) {
         log.info("删除限流配置请求，ID: {}", id);
         try {
             Boolean success = rateLimitService.deleteRateLimitConfig(id);
@@ -69,7 +69,7 @@ public class GatewayRateLimitController {
      * 启用/禁用限流配置
      */
     @PutMapping("/status/{id}/{status}")
-    public Result<Boolean> updateStatus(@PathVariable Long id, @PathVariable Integer status) {
+    public Result<Boolean> updateStatus(@PathVariable String id, @PathVariable Integer status) {
         log.info("更新限流配置状态请求，ID: {}, status: {}", id, status);
         try {
             Boolean success = rateLimitService.updateStatus(id, status);
@@ -84,7 +84,7 @@ public class GatewayRateLimitController {
      * 查询限流配置详情
      */
     @GetMapping("/detail/{id}")
-    public Result<GatewayRateLimitDO> getRateLimitConfig(@PathVariable Long id) {
+    public Result<GatewayRateLimitDO> getRateLimitConfig(@PathVariable String id) {
         log.info("查询限流配置详情，ID: {}", id);
         try {
             GatewayRateLimitDO config = rateLimitService.getRateLimitConfig(id);

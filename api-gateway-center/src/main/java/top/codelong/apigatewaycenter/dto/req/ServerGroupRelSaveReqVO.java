@@ -7,7 +7,7 @@ import lombok.Data;
 @Schema(description = "网关服务实例组关联创建 ReqVO")
 public class ServerGroupRelSaveReqVO {
     @Schema(description = "网关服务id")
-    private Long serverId;
+    private String serverId;
     @Schema(description = "网关分组id")
-    private Long groupId;
+    private String groupId;
 }

@@ -1,5 +1,6 @@
 package top.codelong.apigatewaycenter.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import top.codelong.apigatewaycenter.utils.UniqueIdUtil;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -73,7 +75,7 @@ public class GatewayServerDetailServiceImpl extends ServiceImpl<GatewayServerDet
      * @throws RuntimeException 当服务不存在或下线失败时抛出
      */
     @Override
-    public Boolean offline(Long id) {
+    public Boolean offline(String id) {
         log.info("开始下线服务详情，detailId: {}", id);
 
         GatewayServerDetailDO detailDO = gatewayServerDetailMapper.selectById(id);
@@ -126,5 +128,24 @@ public class GatewayServerDetailServiceImpl extends ServiceImpl<GatewayServerDet
         }
 
         return true;
+    }
+
+    /**
+     * 根据服务ID查询实例列表
+     * @param serverId 服务ID
+     * @return 实例列表
+     */
+    @Override
+    public List<GatewayServerDetailDO> listByServerId(String serverId) {
+        log.info("查询服务实例列表，serverId: {}", serverId);
+
+        LambdaQueryWrapper<GatewayServerDetailDO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(GatewayServerDetailDO::getServerId, serverId);
+        queryWrapper.orderByDesc(GatewayServerDetailDO::getCreateTime);
+
+        List<GatewayServerDetailDO> list = this.list(queryWrapper);
+        log.info("成功查询服务实例列表，serverId: {}, 实例数: {}", serverId, list.size());
+
+        return list;
     }
 }

@@ -20,7 +20,7 @@ public class GatewayServerController {
 
     @PostMapping("/create")
     @Operation(description = "创建网关服务")
-    public Result<Long> create(@RequestBody ServerSaveReqVO reqVO) {
+    public Result<String> create(@RequestBody ServerSaveReqVO reqVO) {
         return Result.success(gatewayServerService.create(reqVO));
     }
 
@@ -32,19 +32,19 @@ public class GatewayServerController {
 
     @DeleteMapping("/delete")
     @Operation(description = "删除网关服务")
-    public Result<Boolean> delete(@RequestParam Long id) {
+    public Result<Boolean> delete(@RequestParam String id) {
         return Result.success(gatewayServerService.removeById(id));
     }
 
     @PutMapping("/update/status")
     @Operation(description = "更新网关服务状态")
-    public Result<Boolean> updateStatus(@RequestParam Long id) {
+    public Result<Boolean> updateStatus(@RequestParam String id) {
         return Result.success(gatewayServerService.updateStatus(id));
     }
 
     @GetMapping("/get")
     @Operation(description = "查询网关服务")
-    public Result<ServerSaveReqVO> get(@RequestParam Long id) {
+    public Result<ServerSaveReqVO> get(@RequestParam String id) {
         return Result.success(gatewayServerService.get(id));
     }
 

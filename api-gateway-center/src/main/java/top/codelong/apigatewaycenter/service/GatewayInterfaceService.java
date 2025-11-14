@@ -14,7 +14,7 @@ import java.util.List;
 */
 public interface GatewayInterfaceService extends IService<GatewayInterfaceDO> {
 
-    Long create(InterfaceMethodSaveReqVO reqVO);
+    String create(InterfaceMethodSaveReqVO reqVO);
 
     /**
      * 分页查询接口列表
@@ -23,7 +23,7 @@ public interface GatewayInterfaceService extends IService<GatewayInterfaceDO> {
      * @param serverId 服务ID（可选）
      * @return 分页结果
      */
-    PageResult<GatewayInterfaceDO> page(Integer pageNum, Integer pageSize, Long serverId);
+    PageResult<GatewayInterfaceDO> page(Integer pageNum, Integer pageSize, String serverId);
 
     /**
      * 获取所有接口列表

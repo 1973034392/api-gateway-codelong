@@ -44,15 +44,15 @@
             <div class="col col-action">操作</div>
           </div>
           <div v-for="binding in bindings" :key="binding.id" class="table-row">
-            <div class="col col-core">{{ binding.coreServiceName }}</div>
+            <div class="col col-core">{{ binding.serverName }}</div>
             <div class="col col-core-key">
-              <span class="key-badge">{{ binding.coreServiceKey }}</span>
+              <span class="key-badge">{{ binding.serverKey }}</span>
             </div>
-            <div class="col col-gateway">{{ binding.gatewayServiceName }}</div>
+            <div class="col col-gateway">{{ binding.groupName }}</div>
             <div class="col col-gateway-key">
-              <span class="key-badge">{{ binding.gatewayServiceKey }}</span>
+              <span class="key-badge">{{ binding.groupKey }}</span>
             </div>
-            <div class="col col-time">{{ binding.bindTime }}</div>
+            <div class="col col-time">{{ formatTime(binding.createTime) }}</div>
             <div class="col col-action">
               <button class="btn btn-sm btn-danger" @click="handleUnbind(binding.id)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -138,8 +138,8 @@ const loadData = async () => {
     // 加载网关服务列表
     const gatewayRes = await gatewayService.list()
     gatewayServices.value = (gatewayRes || []).map(s => ({
-      key: s.safeKey,
-      name: s.serverName,
+      key: s.groupKey,
+      name: s.groupName,
       id: s.id
     }))
 
@@ -168,10 +168,19 @@ const handleCreateBinding = async () => {
     return
   }
 
+  // 根据key查找对应的ID
+  const coreServiceId = coreServices.value.find(s => s.key === newBinding.coreServiceKey)?.id
+  const gatewayServiceId = gatewayServices.value.find(s => s.key === newBinding.gatewayServiceKey)?.id
+
+  if (!coreServiceId || !gatewayServiceId) {
+    ElMessage.error('服务信息不完整')
+    return
+  }
+
   try {
     await serviceBinding.create({
-      coreServiceKey: newBinding.coreServiceKey,
-      gatewayServiceKey: newBinding.gatewayServiceKey
+      serverId: coreServiceId,
+      groupId: gatewayServiceId
     })
     ElMessage.success('绑定创建成功')
     dialogVisible.value = false
@@ -197,6 +206,19 @@ const handleUnbind = (bindingId) => {
       }
     })
     .catch(() => {})
+}
+
+// 格式化时间
+const formatTime = (time) => {
+  if (!time) return '-'
+  const date = new Date(time)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
 // 初始加载

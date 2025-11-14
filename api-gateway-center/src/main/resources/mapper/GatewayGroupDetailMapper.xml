@@ -38,9 +38,21 @@
             </if>
         </where>
     </select>
-    <select id="getIdByAddr" resultType="java.lang.Long">
+    <select id="getIdByAddr" resultType="java.lang.String">
         select id
         from gateway_group_detail
         where detail_address = #{address}
+    </select>
+    <select id="listByGroupId" resultType="top.codelong.apigatewaycenter.dto.req.GroupDetailSaveReqVO">
+        select d.id,
+        g.group_name,
+        d.detail_name as name,
+        d.detail_address as address,
+        d.status,
+        d.detail_weight as weight
+        from gateway_group_detail d
+        inner join gateway_group g on d.group_id = g.id
+        where d.group_id = #{groupId}
+        order by d.create_time desc
     </select>
 </mapper>

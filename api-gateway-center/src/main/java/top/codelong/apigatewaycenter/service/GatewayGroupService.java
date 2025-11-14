@@ -13,11 +13,11 @@ import top.codelong.apigatewaycenter.dto.req.GroupSaveReqVO;
  */
 public interface GatewayGroupService extends IService<GatewayGroupDO> {
 
-    Long create(GroupSaveReqVO reqVO);
+    String create(GroupSaveReqVO reqVO);
 
     Boolean update(GroupSaveReqVO reqVO);
 
-    Boolean delete(Long id);
+    Boolean delete(String id);
 
     PageResult<GroupSaveReqVO> page(GroupPageReqVO reqVO);
 }

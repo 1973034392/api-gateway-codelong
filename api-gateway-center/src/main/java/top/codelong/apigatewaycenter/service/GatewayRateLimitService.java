@@ -14,7 +14,7 @@ public interface GatewayRateLimitService {
      * @param reqVO 限流配置请求
      * @return 配置ID
      */
-    Long createRateLimitConfig(RateLimitConfigReqVO reqVO);
+    String createRateLimitConfig(RateLimitConfigReqVO reqVO);
 
     /**
      * 更新限流配置
@@ -28,7 +28,7 @@ public interface GatewayRateLimitService {
      * @param id 配置ID
      * @return 是否成功
      */
-    Boolean deleteRateLimitConfig(Long id);
+    Boolean deleteRateLimitConfig(String id);
 
     /**
      * 启用/禁用限流配置
@@ -36,14 +36,14 @@ public interface GatewayRateLimitService {
      * @param status 状态：0-禁用，1-启用
      * @return 是否成功
      */
-    Boolean updateStatus(Long id, Integer status);
+    Boolean updateStatus(String id, Integer status);
 
     /**
      * 查询限流配置详情
      * @param id 配置ID
      * @return 限流配置
      */
-    GatewayRateLimitDO getRateLimitConfig(Long id);
+    GatewayRateLimitDO getRateLimitConfig(String id);
 
     /**
      * 分页查询限流配置列表

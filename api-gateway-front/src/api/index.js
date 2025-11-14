@@ -24,10 +24,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => {
     const { data } = response
-    if (data.code === 0 || data.success) {
+    if (data.code === 1 || data.success) {
       return data.data || data
     }
-    return Promise.reject(new Error(data.message || '请求失败'))
+    return Promise.reject(new Error(data.msg || data.message || '请求失败'))
   },
   error => {
     return Promise.reject(error)

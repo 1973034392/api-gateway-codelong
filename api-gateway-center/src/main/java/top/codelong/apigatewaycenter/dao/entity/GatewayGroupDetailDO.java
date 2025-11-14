@@ -2,8 +2,9 @@ package top.codelong.apigatewaycenter.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.time.LocalDateTime;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * 网关实例信息表
@@ -16,12 +17,12 @@ public class GatewayGroupDetailDO {
      * 唯一id
      */
     @TableId
-    private Long id;
+    private String id;
 
     /**
      * 分组唯一标识id
      */
-    private Long groupId;
+    private String groupId;
 
     /**
      * 网关实例名称

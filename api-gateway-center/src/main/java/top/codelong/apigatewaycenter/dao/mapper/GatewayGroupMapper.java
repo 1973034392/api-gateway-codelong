@@ -20,7 +20,7 @@ import java.util.List;
 @Mapper
 public interface GatewayGroupMapper extends BaseMapper<GatewayGroupDO> {
 
-    Long getIdByKey(String key);
+    String getIdByKey(String key);
 
     List<GroupSaveReqVO> pageInfo(Page<GroupSaveReqVO> page, GroupPageReqVO reqVO);
 

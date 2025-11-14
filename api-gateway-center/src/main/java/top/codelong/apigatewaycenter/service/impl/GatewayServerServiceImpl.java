@@ -40,7 +40,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
      * @throws RuntimeException 当服务名称已存在或安全信息为空时抛出
      */
     @Override
-    public Long create(ServerSaveReqVO reqVO) {
+    public String create(ServerSaveReqVO reqVO) {
         log.info("开始创建网关服务，请求参数: {}", reqVO);
 
         GatewayServerDO bean = BeanUtil.toBean(reqVO, GatewayServerDO.class);
@@ -116,7 +116,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
      * @throws RuntimeException 当服务不存在时抛出
      */
     @Override
-    public Boolean updateStatus(Long id) {
+    public Boolean updateStatus(String id) {
         log.info("开始更新服务状态，服务ID: {}", id);
 
         GatewayServerDO serverDO = gatewayServerMapper.selectById(id);
@@ -146,7 +146,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
      * @throws RuntimeException 当服务不存在时抛出
      */
     @Override
-    public ServerSaveReqVO get(Long id) {
+    public ServerSaveReqVO get(String id) {
         log.info("获取服务详情，服务ID: {}", id);
 
         GatewayServerDO serverDO = gatewayServerMapper.selectById(id);

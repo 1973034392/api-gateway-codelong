@@ -28,7 +28,7 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # SQL日志输出实现
   global-config:
     db-config:
-      id-type: auto  # ID生成策略为自动
+      id-type: input  # ID生成策略为手动输入（使用代码中设置的ID）
 
 # Knife4j配置
 knife4j:

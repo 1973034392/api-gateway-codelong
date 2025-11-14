@@ -18,7 +18,7 @@ public class GatewayInterfaceController {
 
     @PostMapping("/create")
     @Operation(description = "保存网关接口和方法信息")
-    public Result<Long> create(@RequestBody InterfaceMethodSaveReqVO reqVO) {
+    public Result<String> create(@RequestBody InterfaceMethodSaveReqVO reqVO) {
         return Result.success(gatewayInterfaceService.create(reqVO));
     }
 
@@ -27,7 +27,7 @@ public class GatewayInterfaceController {
     public Result<PageResult<?>> page(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
-            @RequestParam(required = false) Long serverId) {
+            @RequestParam(required = false) String serverId) {
         return Result.success(gatewayInterfaceService.page(pageNum, pageSize, serverId));
     }
 
