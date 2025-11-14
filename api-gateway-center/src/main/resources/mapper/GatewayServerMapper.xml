@@ -12,12 +12,13 @@
         from gateway_server
         <where>
             <if test="name != null and name != ''">
-                and name like concat('%',#{name},'%')
+                and server_name like concat('%',#{name},'%')
             </if>
             <if test="status != null">
                 and status = #{status}
             </if>
         </where>
+        order by id desc
     </select>
     <select id="getIdBySafeKey" resultType="java.lang.Long">
         select id
