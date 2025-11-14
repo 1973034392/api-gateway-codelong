@@ -41,11 +41,6 @@ public class GatewayServerDO {
     private String safeSecret;
 
     /**
-     * NGINX地址
-     */
-    private String nginxAddr;
-
-    /**
      * 创建时间
      */
     private LocalDateTime createTime;

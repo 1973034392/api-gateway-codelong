@@ -13,6 +13,4 @@ public class ServerPageReqVO extends PageParam {
     private String serverName;
     @Schema(description = "网关服务状态")
     private Integer status;
-    @Schema(description = "网关服务地址")
-    private String nginxAddr;
 }

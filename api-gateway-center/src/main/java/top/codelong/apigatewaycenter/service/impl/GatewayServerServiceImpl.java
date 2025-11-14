@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * 网关服务实现类
+ *
  * @author CodeLong
  * @description 针对表【gateway_server(网关系统表)】的数据库操作Service实现
  * @createDate 2025-05-23 16:05:44
@@ -33,6 +34,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
 
     /**
      * 创建网关服务
+     *
      * @param reqVO 服务保存请求VO
      * @return 创建的服务ID
      * @throws RuntimeException 当服务名称已存在或安全信息为空时抛出
@@ -71,6 +73,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
 
     /**
      * 更新网关服务信息
+     *
      * @param reqVO 服务保存请求VO
      * @return 更新是否成功
      * @throws RuntimeException 当服务名称已存在或安全信息为空时抛出
@@ -107,6 +110,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
 
     /**
      * 更新服务状态
+     *
      * @param id 服务ID
      * @return 更新是否成功
      * @throws RuntimeException 当服务不存在时抛出
@@ -136,6 +140,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
 
     /**
      * 获取服务详情
+     *
      * @param id 服务ID
      * @return 服务详情VO
      * @throws RuntimeException 当服务不存在时抛出
@@ -157,17 +162,18 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
 
     /**
      * 分页查询服务列表
+     *
      * @param reqVO 分页查询请求VO
      * @return 分页结果
      */
     @Override
     public PageResult<GatewayServerDO> page(ServerPageReqVO reqVO) {
-        log.info("分页查询服务列表，参数: 服务名称={}, 状态={}, Nginx地址={}",
-                reqVO.getServerName(), reqVO.getStatus(), reqVO.getNginxAddr());
+        log.info("分页查询服务列表，参数: 服务名称={}, 状态={}",
+                reqVO.getServerName(), reqVO.getStatus());
 
         Page<ServerSaveReqVO> page = new Page<>(reqVO.getPageNo(), reqVO.getPageSize());
         List<GatewayServerDO> list = gatewayServerMapper.pageInfo(
-                page, reqVO.getServerName(), reqVO.getStatus(), reqVO.getNginxAddr());
+                page, reqVO.getServerName(), reqVO.getStatus());
 
         log.info("成功查询服务列表，总数: {}", page.getTotal());
         return new PageResult<>(list, page.getTotal());

@@ -17,9 +17,6 @@
             <if test="status != null">
                 and status = #{status}
             </if>
-            <if test="addr != null and addr != ''">
-                and nginx_addr like concat('%',#{addr},'%')
-            </if>
         </where>
     </select>
     <select id="getIdBySafeKey" resultType="java.lang.Long">

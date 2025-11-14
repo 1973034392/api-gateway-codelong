@@ -68,13 +68,10 @@ create table gateway_server
     status      int      default 0                 not null comment '启用状态',
     safe_key    varchar(100)                       not null comment '安全组唯一标识',
     safe_secret varchar(100)                       not null comment '安全组秘钥',
-    nginx_addr  varchar(100)                       not null comment 'NGINX地址',
     create_time datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     constraint gateway_server_pk
-        unique (safe_key),
-    constraint gateway_server_pk_2
-        unique (nginx_addr)
+        unique (safe_key)
 )
     comment '网关系统表';
 

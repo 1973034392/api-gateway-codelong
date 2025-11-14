@@ -16,6 +16,4 @@ public class ServerSaveReqVO {
     private String safeKey;
     @Schema(description = "安全密钥")
     private String safeSecret;
-    @Schema(description = "nginx地址")
-    private String nginxAddr;
 }

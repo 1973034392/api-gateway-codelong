@@ -19,7 +19,7 @@ public interface GatewayServerMapper extends BaseMapper<GatewayServerDO> {
 
     boolean nameIsExist(String name);
 
-    List<GatewayServerDO> pageInfo(Page<ServerSaveReqVO> page, String name, Integer status, String addr);
+    List<GatewayServerDO> pageInfo(Page<ServerSaveReqVO> page, String name, Integer status);
 
     Long getIdBySafeKey(String safeKey);
 
