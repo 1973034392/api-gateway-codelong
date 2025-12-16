@@ -48,6 +48,7 @@
           <div class="col col-target">限流目标</div>
           <div class="col col-count">阈值(请求/秒)</div>
           <div class="col col-strategy">策略</div>
+          <div class="col col-mode">限流模式</div>
           <div class="col col-status">状态</div>
           <div class="col col-action">操作</div>
         </div>
@@ -71,6 +72,11 @@
           </div>
           <div class="col col-strategy">
             <span class="strategy-badge">{{ getStrategyLabel(config.strategy) }}</span>
+          </div>
+          <div class="col col-mode">
+            <span class="mode-badge" :class="(config.mode || 'DISTRIBUTED').toLowerCase()">
+              {{ getModeLabel(config.mode) }}
+            </span>
           </div>
           <div class="col col-status">
             <button
@@ -210,6 +216,38 @@
               <option value="SLIDING_WINDOW">滑动窗口</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>限流模式</label>
+            <select v-model="newConfig.mode" class="form-select">
+              <option value="DISTRIBUTED">分布式限流（默认）</option>
+              <option value="LOCAL_DISTRIBUTED">本地+分布式混合（高性能）</option>
+            </select>
+            <p class="form-hint">
+              分布式：使用 Redis 侧的限流算法，精度高。
+              本地+分布式：本地高性能限流，批量从 Redis 获取令牌，性能极高。
+            </p>
+          </div>
+          <div v-if="newConfig.mode === 'LOCAL_DISTRIBUTED'" class="form-group">
+            <label>批量获取令牌数</label>
+            <input
+              v-model.number="newConfig.localBatchSize"
+              type="number"
+              placeholder="默认 100"
+              class="form-input"
+            />
+            <p class="form-hint">从 Redis 批量获取的令牌数，默认为 100</p>
+          </div>
+          <div v-if="newConfig.mode === 'LOCAL_DISTRIBUTED'" class="form-group">
+            <label>本地容量倍数</label>
+            <input
+              v-model.number="newConfig.localCapacityMultiplier"
+              type="number"
+              step="0.1"
+              placeholder="默认 1.0"
+              class="form-input"
+            />
+            <p class="form-hint">本地限流器容量倍数，默认为 1.0（精确限流）</p>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" @click="createDialogVisible = false">取消</button>
@@ -244,6 +282,9 @@ const newConfig = reactive({
   limitCount: 100,
   timeWindow: 1,
   strategy: 'TOKEN_BUCKET',
+  mode: 'DISTRIBUTED',
+  localBatchSize: 100,
+  localCapacityMultiplier: 1.0,
   status: 1
 })
 
@@ -270,6 +311,9 @@ const openCreateDialog = () => {
   newConfig.limitCount = 100
   newConfig.timeWindow = 1
   newConfig.strategy = 'TOKEN_BUCKET'
+  newConfig.mode = 'DISTRIBUTED'
+  newConfig.localBatchSize = 100
+  newConfig.localCapacityMultiplier = 1.0
   newConfig.status = 1
   createDialogVisible.value = true
 }
@@ -288,6 +332,9 @@ const handleCreate = async () => {
       limitCount: newConfig.limitCount,
       timeWindow: newConfig.timeWindow,
       strategy: newConfig.strategy,
+      mode: newConfig.mode,
+      localBatchSize: newConfig.localBatchSize,
+      localCapacityMultiplier: newConfig.localCapacityMultiplier,
       status: newConfig.status
     })
     ElMessage.success('创建成功')
@@ -314,6 +361,9 @@ const handleSave = async () => {
         limitCount: editingConfig.value.limitCount,
         timeWindow: editingConfig.value.timeWindow,
         strategy: editingConfig.value.strategy,
+        mode: editingConfig.value.mode,
+        localBatchSize: editingConfig.value.localBatchSize,
+        localCapacityMultiplier: editingConfig.value.localCapacityMultiplier,
         status: editingConfig.value.status
       })
       ElMessage.success('保存成功')
@@ -376,6 +426,14 @@ const getStrategyLabel = (strategy) => {
     'SLIDING_WINDOW': '滑动窗口'
   }
   return strategyMap[strategy] || strategy
+}
+
+const getModeLabel = (mode) => {
+  const modeMap = {
+    'DISTRIBUTED': '分布式',
+    'LOCAL_DISTRIBUTED': '本地+分布式'
+  }
+  return modeMap[mode || 'DISTRIBUTED'] || mode
 }
 
 // 初始加载
@@ -478,7 +536,7 @@ loadData()
 
 .table-header {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   gap: 12px;
   padding: 12px 16px;
   background: #f3f3f5;
@@ -486,12 +544,12 @@ loadData()
   font-size: 13px;
   color: #030213;
   border-bottom: 1px solid #e5e7eb;
-  min-width: 1400px;
+  min-width: 1600px;
 }
 
 .table-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   gap: 12px;
   padding: 12px 16px;
   border-bottom: 1px solid #e5e7eb;
@@ -499,7 +557,7 @@ loadData()
   color: #717182;
   transition: background-color 0.2s ease;
   align-items: center;
-  min-width: 1400px;
+  min-width: 1600px;
 }
 
 .table-row:hover {
@@ -556,6 +614,26 @@ loadData()
   font-weight: 500;
   background: #e9ebef;
   color: #030213;
+}
+
+.mode-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f3f3f5;
+  color: #717182;
+}
+
+.mode-badge.distributed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.mode-badge.local_distributed {
+  background: #fce7f3;
+  color: #be185d;
 }
 
 .edit-input-group {
@@ -726,6 +804,13 @@ loadData()
   font-weight: 500;
   color: #030213;
   margin-bottom: 6px;
+}
+
+.form-hint {
+  font-size: 12px;
+  color: #717182;
+  margin-top: 4px;
+  margin-bottom: 0;
 }
 
 .form-input,

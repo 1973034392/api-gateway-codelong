@@ -55,6 +55,24 @@ public class GatewayRateLimitDO {
     private String strategy;
 
     /**
+     * 限流模式：DISTRIBUTED(分布式)、LOCAL_DISTRIBUTED(本地+分布式混合)
+     * 默认为 DISTRIBUTED
+     */
+    private String mode;
+
+    /**
+     * 本地限流批量获取令牌数（仅在 LOCAL_DISTRIBUTED 模式下使用）
+     * 从 Redis 批量获取的令牌数，默认为 100
+     */
+    private Integer localBatchSize;
+
+    /**
+     * 本地限流器容量倍数（仅在 LOCAL_DISTRIBUTED 模式下使用）
+     * 用于计算本地限流器的容量，默认为 1.0
+     */
+    private Double localCapacityMultiplier;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

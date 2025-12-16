@@ -9,12 +9,15 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 分布式限流器
- * 采用本地Guava RateLimiter + Redis分布式限流的多级限流策略
- * 本地限流器承担大部分流量，Redis用于跨节点协调，避免Redis成为瓶颈
+ * 支持两种模式：
+ * 1. DISTRIBUTED（默认）：使用 Redis 侧的滑动窗口和令牌桶算法进行限流
+ * 2. LOCAL_DISTRIBUTED：本地限流 + 分布式限流混合模式
+ * - 使用令牌桶算法从 Redis 批量获取令牌
+ * - 在本地进行高性能限流操作
  */
 @Slf4j
 @Component
@@ -23,11 +26,18 @@ public class DistributedRateLimiter {
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
-     * 本地限流器缓存
+     * 本地限流器缓存（仅在 LOCAL_DISTRIBUTED 模式下使用）
      * key: 限流目标标识
      * value: Guava RateLimiter
      */
     private final Map<String, RateLimiter> localLimiters = new ConcurrentHashMap<>();
+
+    /**
+     * 本地令牌计数器（仅在 LOCAL_DISTRIBUTED 模式下使用）
+     * key: 限流目标标识
+     * value: 本地剩余令牌数
+     */
+    private final Map<String, AtomicInteger> localTokenCounters = new ConcurrentHashMap<>();
 
     /**
      * 限流配置缓存
@@ -72,6 +82,26 @@ public class DistributedRateLimiter {
                         return 0
                     end""";
 
+    /**
+     * Redis Lua脚本 - 批量获取令牌（用于本地+分布式混合模式）
+     */
+    private static final String BATCH_GET_TOKENS_SCRIPT =
+            """
+                    local key = KEYS[1]
+                    local batch_size = tonumber(ARGV[1])
+                    local limit = tonumber(ARGV[2])
+                    local current = tonumber(redis.call('get', key) or '0')
+                    local available = math.min(batch_size, limit - current)
+                    if available > 0 then
+                        redis.call('incrby', key, available)
+                        if current == 0 then
+                            redis.call('expire', key, 1)
+                        end
+                        return available
+                    else
+                        return 0
+                    end""";
+
     public DistributedRateLimiter(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
@@ -79,7 +109,7 @@ public class DistributedRateLimiter {
     /**
      * 尝试获取令牌
      *
-     * @param key 限流键
+     * @param key    限流键
      * @param config 限流配置
      * @return true表示允许通过，false表示被限流
      */
@@ -89,44 +119,25 @@ public class DistributedRateLimiter {
         }
 
         try {
-            // 第一层：本地限流（快速失败，保护Redis）
-            // 本地限流器设置为配置值的1.2倍，留有余量
-            if (!tryAcquireLocal(key, config)) {
-                log.debug("本地限流拦截: {}", key);
-                return false;
-            }
+            String mode = config.getMode() != null ? config.getMode() : "DISTRIBUTED";
 
-            // 第二层：Redis分布式限流（精确控制）
-            boolean allowed = tryAcquireDistributed(key, config);
-            if (!allowed) {
-                log.debug("分布式限流拦截: {}", key);
+            if ("LOCAL_DISTRIBUTED".equals(mode)) {
+                // 本地+分布式混合模式
+                return tryAcquireLocalDistributed(key, config);
+            } else {
+                // 默认分布式模式
+                return tryAcquireDistributed(key, config);
             }
-            return allowed;
 
         } catch (Exception e) {
-            // 限流器异常时，降级为只使用本地限流
-            log.error("分布式限流异常，降级为本地限流: {}", key, e);
-            return tryAcquireLocal(key, config);
+            log.error("限流异常，降级为放行: key={}", key, e);
+            return true; // 异常时放行，保证服务可用性
         }
     }
 
     /**
-     * 本地限流（基于Guava RateLimiter）
-     */
-    private boolean tryAcquireLocal(String key, RateLimitConfig config) {
-        RateLimiter limiter = localLimiters.computeIfAbsent(key, k -> {
-            // 本地限流器设置为配置值的1.2倍，避免过度拦截
-            double permitsPerSecond = config.getLimitCount() * 1.2 / config.getTimeWindow();
-            log.info("创建本地限流器: key={}, permitsPerSecond={}", key, permitsPerSecond);
-            return RateLimiter.create(permitsPerSecond);
-        });
-
-        // 非阻塞尝试获取令牌
-        return limiter.tryAcquire(0, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * Redis分布式限流
+     * 分布式限流（默认模式）
+     * 直接使用 Redis 侧的滑动窗口或令牌桶算法进行限流
      */
     private boolean tryAcquireDistributed(String key, RateLimitConfig config) {
         String redisKey = "rate_limit:" + key;
@@ -135,6 +146,63 @@ public class DistributedRateLimiter {
             return tryAcquireTokenBucket(redisKey, config);
         } else {
             return tryAcquireSlidingWindow(redisKey, config);
+        }
+    }
+
+    /**
+     * 本地+分布式混合模式
+     * 使用令牌桶算法从 Redis 批量获取令牌，然后在本地进行高性能限流
+     */
+    private boolean tryAcquireLocalDistributed(String key, RateLimitConfig config) {
+        // 获取或创建本地令牌计数器
+        AtomicInteger tokenCounter = localTokenCounters.computeIfAbsent(key, k -> new AtomicInteger(0));
+
+        // 尝试消费本地令牌
+        int currentTokens = tokenCounter.get();
+        if (currentTokens > 0) {
+            // 本地有令牌，直接消费
+            if (tokenCounter.compareAndSet(currentTokens, currentTokens - 1)) {
+                return true;
+            }
+            // CAS 失败，重试
+            return tryAcquireLocalDistributed(key, config);
+        }
+
+        // 本地令牌不足，从 Redis 批量获取
+        int batchSize = config.getLocalBatchSize() != null ? config.getLocalBatchSize() : 100;
+        int acquiredTokens = batchGetTokensFromRedis(key, config, batchSize);
+
+        if (acquiredTokens > 0) {
+            // 成功获取令牌，设置本地计数器（减1是因为当前请求消费一个）
+            tokenCounter.set(acquiredTokens - 1);
+            return true;
+        }
+
+        // 无法获取令牌，限流
+        return false;
+    }
+
+    /**
+     * 从 Redis 批量获取令牌
+     */
+    private int batchGetTokensFromRedis(String key, RateLimitConfig config, int batchSize) {
+        try {
+            String redisKey = "rate_limit:" + key;
+            DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+            script.setScriptText(BATCH_GET_TOKENS_SCRIPT);
+            script.setResultType(Long.class);
+
+            Long result = redisTemplate.execute(
+                    script,
+                    Collections.singletonList(redisKey),
+                    batchSize,
+                    config.getLimitCount()
+            );
+
+            return result.intValue();
+        } catch (Exception e) {
+            log.error("从 Redis 批量获取令牌失败: key={}", key, e);
+            return 0;
         }
     }
 
@@ -148,9 +216,9 @@ public class DistributedRateLimiter {
             script.setResultType(Long.class);
 
             Long result = redisTemplate.execute(
-                script,
-                Collections.singletonList(redisKey),
-                config.getLimitCount()
+                    script,
+                    Collections.singletonList(redisKey),
+                    config.getLimitCount()
             );
 
             return result == 1L;
@@ -171,11 +239,11 @@ public class DistributedRateLimiter {
 
             long currentTime = System.currentTimeMillis();
             Long result = redisTemplate.execute(
-                script,
-                Collections.singletonList(redisKey),
-                config.getLimitCount(),
-                config.getTimeWindow(),
-                currentTime
+                    script,
+                    Collections.singletonList(redisKey),
+                    config.getLimitCount(),
+                    config.getTimeWindow(),
+                    currentTime
             );
 
             return result == 1L;
@@ -189,11 +257,12 @@ public class DistributedRateLimiter {
      * 更新限流配置
      */
     public void updateConfig(String key, RateLimitConfig config) {
-        log.info("更新限流配置: key={}, config={}", key, config);
+        log.info("更新限流配置: key={}, mode={}, config={}", key, config.getMode(), config);
         configCache.put(key, config);
 
-        // 移除旧的本地限流器，下次访问时会重新创建
+        // 清除旧的本地限流器和令牌计数器
         localLimiters.remove(key);
+        localTokenCounters.remove(key);
     }
 
     /**
@@ -210,6 +279,7 @@ public class DistributedRateLimiter {
         log.info("移除限流配置: key={}", key);
         configCache.remove(key);
         localLimiters.remove(key);
+        localTokenCounters.remove(key);
     }
 
     /**
@@ -219,6 +289,7 @@ public class DistributedRateLimiter {
         log.info("清空所有限流配置");
         configCache.clear();
         localLimiters.clear();
+        localTokenCounters.clear();
     }
 
     /**

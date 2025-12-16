@@ -120,7 +120,7 @@ public class RateLimitConfigListener implements MessageListener {
      */
     private RateLimitConfig convertToConfig(Map<Object, Object> configMap) {
         try {
-            return RateLimitConfig.builder()
+            RateLimitConfig.RateLimitConfigBuilder builder = RateLimitConfig.builder()
                 .id(Long.valueOf(configMap.get("id").toString()))
                 .ruleName((String) configMap.get("ruleName"))
                 .limitType((String) configMap.get("limitType"))
@@ -128,8 +128,25 @@ public class RateLimitConfigListener implements MessageListener {
                 .limitCount(Integer.valueOf(configMap.get("limitCount").toString()))
                 .timeWindow(Integer.valueOf(configMap.get("timeWindow").toString()))
                 .enabled(Boolean.valueOf(configMap.get("enabled").toString()))
-                .strategy((String) configMap.get("strategy"))
-                .build();
+                .strategy((String) configMap.get("strategy"));
+
+            // 处理新增的配置字段
+            Object mode = configMap.get("mode");
+            if (mode != null) {
+                builder.mode((String) mode);
+            }
+
+            Object localBatchSize = configMap.get("localBatchSize");
+            if (localBatchSize != null) {
+                builder.localBatchSize(Integer.valueOf(localBatchSize.toString()));
+            }
+
+            Object localCapacityMultiplier = configMap.get("localCapacityMultiplier");
+            if (localCapacityMultiplier != null) {
+                builder.localCapacityMultiplier(Double.valueOf(localCapacityMultiplier.toString()));
+            }
+
+            return builder.build();
         } catch (Exception e) {
             log.error("转换限流配置失败", e);
             return null;
