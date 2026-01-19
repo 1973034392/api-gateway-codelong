@@ -79,6 +79,10 @@ public class RedisConfig {
         container.addMessageListener(rateLimitConfigListener, new ChannelTopic("rate-limit-config-update"));
         log.info("添加限流配置监听器到rate-limit-config-update频道");
 
+        // 添加接口更新监听器
+        container.addMessageListener(listener, new ChannelTopic("api-gateway-interface-update"));
+        log.info("添加接口更新监听器到api-gateway-interface-update频道");
+
         return container;
     }
 }

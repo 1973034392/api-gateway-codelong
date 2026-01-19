@@ -1,13 +1,14 @@
 package top.codelong.apigatewaycore.utils;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycore.common.HttpStatement;
 import top.codelong.apigatewaycore.config.GlobalConfiguration;
 import top.codelong.apigatewaycore.enums.HTTPTypeEnum;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
@@ -57,6 +58,7 @@ public class InterfaceCacheUtil {
                 .isAuth(entries.get("isAuth").equals(1))
                 .isHttp(entries.get("isHttp").equals(1))
                 .httpType(HTTPTypeEnum.valueOf((String) entries.get("httpType")))
+                .serviceId((String) entries.get("serviceId"))
                 .build();
 
         // 4. 放入内存缓存
@@ -64,5 +66,19 @@ public class InterfaceCacheUtil {
         log.debug("接口配置已缓存到内存");
 
         return statement;
+    }
+
+    /**
+     * 移除本地缓存的接口配置
+     * @param url 接口URL
+     */
+    public void removeStatement(String url) {
+        if ("RELOAD_ALL".equals(url)) {
+            config.getHttpStatementMap().clear();
+            log.info("已清空所有本地接口配置缓存");
+        } else {
+            config.getHttpStatementMap().remove(url);
+            log.info("已移除本地接口配置缓存: {}", url);
+        }
     }
 }

@@ -45,7 +45,7 @@ public class GatewayServerServiceImpl extends ServiceImpl<GatewayServerMapper, G
 
         GatewayServerDO bean = BeanUtil.toBean(reqVO, GatewayServerDO.class);
         boolean isExist = gatewayServerMapper.nameIsExist(bean.getServerName());
-        bean.setStatus(StatusEnum.DISABLE.getValue());
+        bean.setStatus(StatusEnum.ENABLE.getValue());
 
         if (isExist) {
             log.error("创建网关服务失败，服务名称已存在: {}", bean.getServerName());

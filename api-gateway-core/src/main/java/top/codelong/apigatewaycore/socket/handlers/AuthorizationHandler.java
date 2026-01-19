@@ -57,7 +57,7 @@ public class AuthorizationHandler extends BaseHandler<FullHttpRequest> {
 
                 HttpStatement statement = interfaceCacheUtil.getStatement(uri);
                 if (statement == null) {
-                    throw new IllegalArgumentException("接口不存在");
+                    throw new IllegalArgumentException("接口不存在: " + uri);
                 }
 
                 if (statement.getIsAuth()) {

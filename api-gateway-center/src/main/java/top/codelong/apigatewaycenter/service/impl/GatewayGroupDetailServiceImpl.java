@@ -308,8 +308,6 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
             } else {
                 gatewayGroupDetailMapper.insert(detailDO);
             }
-
-            nginxConfUtil.addInstance(reqVO.getDetailAddress(), reqVO.getDetailWeight());
             redisPubUtil.heartBeat();
 
             log.info("网关实例注册成功，groupName={}", server.getServerName());
@@ -354,6 +352,7 @@ public class GatewayGroupDetailServiceImpl extends ServiceImpl<GatewayGroupDetai
         }
         redisTemplate.opsForHash().put("heartbeat:group:" + server + ":" + reqVO.getAddr(), "lastTime", LocalDateTime.now().toString());
         redisTemplate.expire("heartbeat:group:" + server + ":" + reqVO.getAddr(), 30, TimeUnit.SECONDS);
+        nginxConfUtil.refreshNginxConfig();
         return server;
     }
 

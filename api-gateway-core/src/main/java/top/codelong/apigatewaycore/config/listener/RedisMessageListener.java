@@ -12,6 +12,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
 import top.codelong.apigatewaycore.common.GatewayServer;
 import top.codelong.apigatewaycore.config.GlobalConfiguration;
+import top.codelong.apigatewaycore.utils.InterfaceCacheUtil;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -28,6 +29,8 @@ public class RedisMessageListener implements MessageListener {
     private GlobalConfiguration config;
     @Resource
     private GatewayServer gatewayServer;
+    @Resource
+    private InterfaceCacheUtil interfaceCacheUtil;
 
     /**
      * 处理Redis频道消息
@@ -43,7 +46,18 @@ public class RedisMessageListener implements MessageListener {
             handleHeartbeatMessage();
         } else if (channel.equals("service-launched")) {
             handleServiceLaunchedMessage();
+        } else if (channel.equals("api-gateway-interface-update")) {
+            handleInterfaceUpdateMessage(message);
         }
+    }
+
+    /**
+     * 处理接口更新消息
+     */
+    private void handleInterfaceUpdateMessage(Message message) {
+        String body = new String(message.getBody());
+        log.info("收到接口更新通知: {}", body);
+        interfaceCacheUtil.removeStatement(body);
     }
 
     /**

@@ -4,7 +4,7 @@
   data:
     redis: # Redis数据库配置（用于存储接口信息）
       database: 0             # Redis数据库索引（0-15）
-      host: localhost         # Redis服务器地址
+      host: 192.168.74.32         # Redis服务器地址
       port: 6379             # Redis服务器端口
 
 # API网关核心配置

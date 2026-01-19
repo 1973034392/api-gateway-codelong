@@ -9,12 +9,12 @@ spring:
   data:
     redis:
       database: 0
-      host: localhost
+      host: 192.168.74.32
       port: 6379
 api:
   gateway:
     sdk:
-      base-url: http://192.168.154.128         # 网关服务地址
+      base-url: http://192.168.74.32         # 网关服务地址
       safe-key: safeKey                 # 从网关中心获取
       safe-secret: safeSecret           # 从网关中心获取
       connect-timeout: 5000             # 连接超时时间(ms)

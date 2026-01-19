@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: api-gateway-core-go
+  data:
+    redis:
+      database: 0
+      host: 192.168.74.32
+      port: 6379
+
+api-gateway:
+  netty-port: 8889
+  gateway-center: http://127.0.0.1:18080
+  group-key: test-key
+  weight: 1
+  max-cache: 1000
+  boss-threads: 1
+  worker-threads: 4
+
+dubbo:
+  application:
+    qos-enable: false

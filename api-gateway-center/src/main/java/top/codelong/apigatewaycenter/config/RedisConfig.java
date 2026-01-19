@@ -90,7 +90,6 @@ public class RedisConfig {
                 String[] s = expiredKey.split(":");
                 log.info("分组心跳过期，标记为离线: {}:{}", s[3], s[4]);
                 gatewayGroupDetailMapper.offline(s[3] + ":" + s[4]);
-                nginxConfUtil.removeInstance(s[3] + ":" + s[4]);
             }
         }, topic);
 

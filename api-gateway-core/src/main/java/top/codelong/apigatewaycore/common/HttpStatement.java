@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import top.codelong.apigatewaycore.enums.HTTPTypeEnum;
 
+import java.util.LinkedList;
+
 /**
  * http请求信息
  */
